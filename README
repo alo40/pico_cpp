@@ -1,0 +1,38 @@
+# add variable (permanent)
+echo 'export PICO_SDK_PATH=$HOME/pico-sdk' >> ~/.bashrc
+source ~/.bashrc
+
+# build
+mkdir build
+cd build
+cmake ..
+make
+
+# clean and rebuild (if failed)
+cd ~/pico-project
+rm -rf build
+mkdir build
+cd build
+cmake ..
+make
+
+# find mount point (with Pico in BOOTSEL mode)
+lsblk
+
+# flash
+cp pico_app.uf2 /media/$USER/RPI-RP2/
+sync
+
+# rebuild project
+cd ~/pico-project/build
+make -j4
+
+# picotool flash
+picotool info -f
+picotool load -f build/pico_app.uf2
+picotool reboot
+
+# use screen (serial)
+ls /dev/ttyACM*
+screen /dev/ttyACM0 115200
+Ctrl + A, then K to exit
