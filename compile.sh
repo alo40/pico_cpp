@@ -1,6 +1,6 @@
 #!/bin/bash
 echo "Starting tasks..."
-cp oled_numbers.c main.c
+cp oled_time.c main.c
 rm -rf build
 mkdir build
 cd build
