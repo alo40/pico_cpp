@@ -71,6 +71,11 @@ int main()
     int seconds = 0;
     uint32_t last_time_ms = to_ms_since_boot(get_absolute_time());
 
+    int text_x = 0;
+    int text_speed = 1;
+    const char message[] = "Hello Pico!";
+    int text_width = 11 * 6; // 11 chars, approx. 6 px per char
+
     while (true)
     {
         uint32_t now_ms = to_ms_since_boot(get_absolute_time());
@@ -106,10 +111,19 @@ int main()
         draw_circle(cx - i, cy, radius);
         // draw_circle(cx + i, cy, radius);
 
-        // Message at the lower part of the OLED
-        ssd1306_draw_string(0, 56, "Hello Pico!");
+        // Moving message at the lower part of the OLED
+        ssd1306_draw_string(text_x, 56, message);
 
         ssd1306_show();
+
+        // Move text left to right
+        text_x += text_speed;
+
+        // If text leaves the right side, restart from the left
+        if (text_x > screen_width)
+        {
+            text_x = -text_width;
+        }
 
         // move circle
         if (cx + i + radius + vel >= screen_width ||
