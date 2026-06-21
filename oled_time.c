@@ -1,3 +1,4 @@
+#include "hardware/adc.h"
 #include "hardware/i2c.h"
 #include "pico/stdlib.h"
 #include "ssd1306.h"
@@ -54,6 +55,10 @@ int main()
     ssd1306_init(I2C_PORT);
     ssd1306_clear();
 
+    adc_init();
+    adc_set_temp_sensor_enabled(true);
+    adc_select_input(4); // Internal temperature sensor
+
     /* // Draw straight line */
     /* for (int i = 0; i < 64; i++) { */
     /*     ssd1306_draw_pixel(i, i, true); */
@@ -106,6 +111,21 @@ int main()
         char time_str[9]; // "HH:MM:SS"
         sprintf(time_str, "%02d:%02d:%02d", hours, minutes, seconds);
         ssd1306_draw_string(10, 0, time_str);
+
+        // Read internal temperature
+        uint16_t raw = adc_read();
+
+        const float conversion_factor = 3.3f / (1 << 12);
+        float voltage = raw * conversion_factor;
+
+        // RP2040 temperature formula
+        float temperature_c = 27.0f - (voltage - 0.706f) / 0.001721f;
+
+        char temp_str[20];
+        sprintf(temp_str, "Temp: %.1f C", temperature_c);
+
+        // Print temperature below the clock
+        ssd1306_draw_string(0, 16, temp_str);
 
         // Optional: keep your circle animation
         draw_circle(cx - i, cy, radius);

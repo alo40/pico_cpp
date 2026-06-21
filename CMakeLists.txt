@@ -17,6 +17,7 @@ add_executable(pico_app
 target_link_libraries(pico_app
     pico_stdlib
     hardware_i2c
+    hardware_adc
 )
 
 target_include_directories(pico_app PRIVATE

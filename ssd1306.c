@@ -183,3 +183,8 @@ void ssd1306_draw_string(int x, int y, const char *str) {
         str++;
     }
 }
+
+void ssd1306_set_i2c_port(i2c_inst_t *i2c)
+{
+    i2c_port = i2c;
+}

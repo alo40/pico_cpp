@@ -36,3 +36,7 @@ picotool reboot
 ls /dev/ttyACM*
 screen /dev/ttyACM0 115200
 Ctrl + A, then K to exit
+
+# copy from raspi to mac
+ssh fori@192.168.0.78 'cat /home/fori/pico_cpp/oled_time.c' | pbcopy
+ssh fori@192.168.0.78 'cat /home/fori/pico_cpp/ssd1306.c' | pbcopy

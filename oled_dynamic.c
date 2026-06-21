@@ -4,21 +4,9 @@
 #include "ssd1306.h"
 #include <stdio.h>
 
-//////////////////////////////////////////////////////
-// OLED 1: Human dashboard
-//////////////////////////////////////////////////////
-
-#define I2C_PORT_OLED_1 i2c0
-#define SDA_PIN_OLED_1 0
-#define SCL_PIN_OLED_1 1
-
-//////////////////////////////////////////////////////
-// OLED 2: Engineering/debug dashboard
-//////////////////////////////////////////////////////
-
-#define I2C_PORT_OLED_2 i2c1
-#define SDA_PIN_OLED_2 2
-#define SCL_PIN_OLED_2 3
+#define I2C_PORT i2c0
+#define SDA_PIN 0
+#define SCL_PIN 1
 
 int main()
 {
@@ -34,40 +22,18 @@ int main()
     gpio_set_dir(LED_PIN, GPIO_OUT);
 
     //////////////////////////////////////////////////////
-    // I2C setup for OLED 1
+    // I2C setup for OLED
     //////////////////////////////////////////////////////
 
-    i2c_init(I2C_PORT_OLED_1, 400000);
+    i2c_init(I2C_PORT, 400000);
 
-    gpio_set_function(SDA_PIN_OLED_1, GPIO_FUNC_I2C);
-    gpio_set_function(SCL_PIN_OLED_1, GPIO_FUNC_I2C);
+    gpio_set_function(SDA_PIN, GPIO_FUNC_I2C);
+    gpio_set_function(SCL_PIN, GPIO_FUNC_I2C);
+    gpio_pull_up(SDA_PIN);
+    gpio_pull_up(SCL_PIN);
 
-    gpio_pull_up(SDA_PIN_OLED_1);
-    gpio_pull_up(SCL_PIN_OLED_1);
-
-    //////////////////////////////////////////////////////
-    // I2C setup for OLED 2
-    //////////////////////////////////////////////////////
-
-    i2c_init(I2C_PORT_OLED_2, 400000);
-
-    gpio_set_function(SDA_PIN_OLED_2, GPIO_FUNC_I2C);
-    gpio_set_function(SCL_PIN_OLED_2, GPIO_FUNC_I2C);
-
-    gpio_pull_up(SDA_PIN_OLED_2);
-    gpio_pull_up(SCL_PIN_OLED_2);
-
-    //////////////////////////////////////////////////////
-    // OLED initialization
-    //////////////////////////////////////////////////////
-
-    ssd1306_init(I2C_PORT_OLED_1);
+    ssd1306_init(I2C_PORT);
     ssd1306_clear();
-    ssd1306_show();
-
-    ssd1306_init(I2C_PORT_OLED_2);
-    ssd1306_clear();
-    ssd1306_show();
 
     //////////////////////////////////////////////////////
     // ADC setup
@@ -113,33 +79,12 @@ int main()
     const char message[] = "Hello Pico!";
 
     //////////////////////////////////////////////////////
-    // Engineering/debug values
-    //////////////////////////////////////////////////////
-
-    float temp_min = 1000.0f;
-    float temp_max = -1000.0f;
-
-    float vsys_min = 1000.0f;
-    float vsys_max = 0.0f;
-
-    uint32_t total_frames = 0;
-    uint32_t previous_loop_ms = to_ms_since_boot(get_absolute_time());
-    uint32_t loop_time_ms = 0;
-
-    //////////////////////////////////////////////////////
     // Main loop
     //////////////////////////////////////////////////////
 
     while (true)
     {
         uint32_t now_ms = to_ms_since_boot(get_absolute_time());
-
-        //////////////////////////////////////////////////////
-        // Loop time calculation
-        //////////////////////////////////////////////////////
-
-        loop_time_ms = now_ms - previous_loop_ms;
-        previous_loop_ms = now_ms;
 
         //////////////////////////////////////////////////////
         // Clock update every 1 second
@@ -174,7 +119,6 @@ int main()
         //////////////////////////////////////////////////////
 
         frame_count++;
-        total_frames++;
 
         if (now_ms - last_fps_time_ms >= 1000)
         {
@@ -205,31 +149,7 @@ int main()
         float vsys = voltage_vsys_adc * 3.0f;
 
         //////////////////////////////////////////////////////
-        // Update min/max values
-        //////////////////////////////////////////////////////
-
-        if (temperature_c < temp_min)
-        {
-            temp_min = temperature_c;
-        }
-
-        if (temperature_c > temp_max)
-        {
-            temp_max = temperature_c;
-        }
-
-        if (vsys < vsys_min)
-        {
-            vsys_min = vsys;
-        }
-
-        if (vsys > vsys_max)
-        {
-            vsys_max = vsys;
-        }
-
-        //////////////////////////////////////////////////////
-        // Prepare OLED 1 text strings
+        // Prepare text strings
         //////////////////////////////////////////////////////
 
         char time_str[16];
@@ -248,37 +168,12 @@ int main()
         sprintf(vsys_str, "VSYS: %.2f V", vsys);
 
         //////////////////////////////////////////////////////
-        // Prepare OLED 2 text strings
+        // Draw OLED content
         //////////////////////////////////////////////////////
-
-        char raw_temp_str[20];
-        sprintf(raw_temp_str, "Traw: %u", raw_temp);
-
-        char raw_vsys_str[20];
-        sprintf(raw_vsys_str, "Vraw: %u", raw_vsys);
-
-        char temp_minmax_str[24];
-        sprintf(temp_minmax_str, "T: %.1f/%.1fC", temp_min, temp_max);
-
-        char vsys_minmax_str[24];
-        sprintf(vsys_minmax_str, "V: %.2f/%.2fV", vsys_min, vsys_max);
-
-        char loop_str[20];
-        sprintf(loop_str, "Loop: %lu ms", (unsigned long)loop_time_ms);
-
-        char frame_str[20];
-        sprintf(frame_str, "Frames: %lu", (unsigned long)total_frames);
-
-        //////////////////////////////////////////////////////
-        // Draw OLED 1: Human dashboard
-        //////////////////////////////////////////////////////
-
-        ssd1306_set_i2c_port(I2C_PORT_OLED_1);
 
         ssd1306_clear();
 
         int text_margin = 4;
-
         ssd1306_draw_string(text_margin, 0, time_str);
         ssd1306_draw_string(text_margin, 8, temp_str);
         ssd1306_draw_string(text_margin, 16, uptime_str);
@@ -287,31 +182,6 @@ int main()
 
         // Moving bottom message
         ssd1306_draw_string(text_x, 56, message);
-
-        ssd1306_show();
-
-        //////////////////////////////////////////////////////
-        // Draw OLED 2: Engineering/debug dashboard
-        //////////////////////////////////////////////////////
-
-        ssd1306_set_i2c_port(I2C_PORT_OLED_2);
-
-        ssd1306_clear();
-
-        ssd1306_draw_string(text_margin, 0, "ADC DEBUG");
-        ssd1306_draw_string(text_margin, 8, raw_temp_str);
-        ssd1306_draw_string(text_margin, 16, raw_vsys_str);
-
-        ssd1306_draw_string(text_margin, 28, "MIN/MAX");
-        ssd1306_draw_string(text_margin, 36, temp_minmax_str);
-        ssd1306_draw_string(text_margin, 44, vsys_minmax_str);
-
-        ssd1306_draw_string(text_margin, 56, loop_str);
-
-        // If you prefer total frames instead of loop time,
-        // replace loop_str with frame_str above.
-        // Example:
-        // ssd1306_draw_string(text_margin, 56, frame_str);
 
         ssd1306_show();
 
