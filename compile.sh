@@ -6,6 +6,8 @@ mkdir build
 cd build
 cmake ..
 make
-picotool load -f pico_app.uf2
-cd ..
-echo "All done!"
+
+# ## Only if script is run in raspi5
+# picotool load -f pico_app.uf2
+# cd ..
+# echo "All done!"

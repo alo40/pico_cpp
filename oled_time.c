@@ -7,6 +7,20 @@
 #define SDA_PIN 0
 #define SCL_PIN 1
 
+void draw_circle(int cx, int cy, int radius)
+{
+    for (int y = -radius; y <= radius; y++)
+    {
+        for (int x = -radius; x <= radius; x++)
+        {
+            if (x * x + y * y <= radius * radius)
+            {
+                ssd1306_draw_pixel(cx + x, cy + y, true);
+            }
+        }
+    }
+}
+
 int main()
 {
     stdio_init_all();
@@ -44,20 +58,6 @@ int main()
     /* for (int i = 0; i < 64; i++) { */
     /*     ssd1306_draw_pixel(i, i, true); */
     /* } */
-
-    void draw_circle(int cx, int cy, int radius)
-    {
-        for (int y = -radius; y <= radius; y++)
-        {
-            for (int x = -radius; x <= radius; x++)
-            {
-                if (x * x + y * y <= radius * radius)
-                {
-                    ssd1306_draw_pixel(cx + x, cy + y, true);
-                }
-            }
-        }
-    }
 
     int i = 0;              // position offset
     int vel = 4;            // speed and direction
@@ -105,6 +105,9 @@ int main()
         // Optional: keep your circle animation
         draw_circle(cx - i, cy, radius);
         // draw_circle(cx + i, cy, radius);
+
+        // Message at the lower part of the OLED
+        ssd1306_draw_string(0, 56, "Hello Pico!");
 
         ssd1306_show();
 
