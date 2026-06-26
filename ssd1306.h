@@ -15,5 +15,7 @@ void ssd1306_draw_char(int x, int y, char c);
 void ssd1306_draw_string(int x, int y, const char *str);
 void ssd1306_show(void);
 void ssd1306_set_i2c_port(i2c_inst_t *i2c);
+void ssd1306_draw_char_scaled(int x, int y, char c, int scale);
+void ssd1306_draw_string_scaled(int x, int y, const char *str, int scale);
 
 #endif

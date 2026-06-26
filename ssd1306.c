@@ -188,3 +188,51 @@ void ssd1306_set_i2c_port(i2c_inst_t *i2c)
 {
     i2c_port = i2c;
 }
+
+static void ssd1306_fill_rect(int x, int y, int w, int h, bool color)
+{
+    for (int dx = 0; dx < w; dx++) {
+        for (int dy = 0; dy < h; dy++) {
+            ssd1306_draw_pixel(x + dx, y + dy, color);
+        }
+    }
+}
+
+void ssd1306_draw_char_scaled(int x, int y, char c, int scale)
+{
+    if (scale < 1) scale = 1;
+
+    if (c < 32 || c > 126) return;
+
+    const uint8_t *bitmap = font5x7[c - 32];
+
+    for (int col = 0; col < 5; col++) {
+        uint8_t line = bitmap[col];
+
+        for (int row = 0; row < 7; row++) {
+            bool pixel = line & (1 << row);
+
+            ssd1306_fill_rect(
+                x + col * scale,
+                y + row * scale,
+                scale,
+                scale,
+                pixel
+            );
+        }
+    }
+
+    // Optional blank spacing column
+    ssd1306_fill_rect(x + 5 * scale, y, scale, 7 * scale, false);
+}
+
+void ssd1306_draw_string_scaled(int x, int y, const char *str, int scale)
+{
+    if (scale < 1) scale = 1;
+
+    while (*str) {
+        ssd1306_draw_char_scaled(x, y, *str, scale);
+        x += 6 * scale;   // 5 font columns + 1 spacing column
+        str++;
+    }
+}

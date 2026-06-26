@@ -10,7 +10,8 @@ if [ "$1" = "clean" ]; then
     rm -rf build
 fi
 
-cp oled_multiple.c main.c
+cp oled_yeny.c main.c
+# cp oled_multiple.c main.c
 # cp oled_dynamic.c main.c
 # cp oled_time.c main.c # previous script
 

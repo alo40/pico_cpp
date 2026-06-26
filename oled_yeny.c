@@ -264,7 +264,7 @@ int main()
 
         // Scale 6 gives very large text.
         // "HI!" fits nicely on 128x64.
-        ssd1306_draw_string_scaled(10, 10, "HI!", 6);
+        ssd1306_draw_string_scaled(10, 10, "HOLA YENY!", 6);
 
         // Smaller subtitle
         ssd1306_draw_string(28, 58, "OLED 1");
