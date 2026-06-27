@@ -1,5 +1,7 @@
 #include "ssd1306.h"
 #include "pico/stdlib.h"
+#include <stdbool.h>
+#include <stdint.h>
 #include <string.h>
 
 static uint8_t buffer[SSD1306_WIDTH * SSD1306_HEIGHT / 8];
@@ -36,6 +38,11 @@ static const uint8_t font5x7[96][5] = {
     [25] = {0x06,0x49,0x49,0x29,0x1E}, // '9'
     // Punctuation: ':' = ASCII 58
     [26] = {0x00,0x11,0x00,0x11,0x00}, // ':'
+    // Punctuation: '<', '=', '>', '?'
+    [28] = {0x08,0x14,0x22,0x41,0x00}, // '<'
+    [29] = {0x14,0x14,0x14,0x14,0x14}, // '='
+    [30] = {0x00,0x41,0x22,0x14,0x08}, // '>'
+    [31] = {0x02,0x01,0x51,0x09,0x06}, // '?'
     // Uppercase 'A'-'Z' ASCII 65–90
     [33] = {0x7E,0x11,0x11,0x11,0x7E}, // 'A'
     [34] = {0x7F,0x49,0x49,0x49,0x36}, // 'B'
@@ -148,7 +155,7 @@ void ssd1306_draw_pixel(int x, int y, bool color) {
 }
 
 void ssd1306_show(void) {
-    for (int page = 0; page < 8; page++) {
+    for (int page = 0; page < SSD1306_HEIGHT / 8; page++) {
         write_cmd(0xB0 + page);
         write_cmd(0x00);
         write_cmd(0x10);
@@ -162,7 +169,7 @@ void ssd1306_show(void) {
 }
 
 void ssd1306_draw_char(int x, int y, char c) {
-    if (c < 32 || c > 127) return;
+    if (c < 32 || c > 126) return;
 
     const uint8_t *bitmap = font5x7[c - 32];
 

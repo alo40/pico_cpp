@@ -3,6 +3,7 @@
 
 #include "hardware/i2c.h"
 #include <stdbool.h>
+#include <stdint.h>
 
 #define SSD1306_WIDTH 128
 #define SSD1306_HEIGHT 64

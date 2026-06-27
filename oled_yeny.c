@@ -3,9 +3,10 @@
 #include "ssd1306.h"
 #include <stdbool.h>
 #include <stdio.h>
+#include <string.h>
 
 //////////////////////////////////////////////////////
-// OLED 1: Big text display
+// OLED 1: Big scrolling text
 //////////////////////////////////////////////////////
 
 #define I2C_PORT_OLED_1 i2c0
@@ -13,7 +14,7 @@
 #define SCL_PIN_OLED_1 1
 
 //////////////////////////////////////////////////////
-// OLED 2: Minion-style drawing
+// OLED 2: Moving minion-style drawing
 //////////////////////////////////////////////////////
 
 #define I2C_PORT_OLED_2 i2c1
@@ -21,7 +22,18 @@
 #define SCL_PIN_OLED_2 3
 
 //////////////////////////////////////////////////////
-// Simple drawing helpers
+// Display settings
+//////////////////////////////////////////////////////
+
+#define SCREEN_WIDTH 128
+#define SCREEN_HEIGHT 64
+
+#define BIG_TEXT_SCALE 4
+#define BIG_TEXT_Y 18
+#define BIG_TEXT_SPEED 4
+
+//////////////////////////////////////////////////////
+// Drawing helpers
 //////////////////////////////////////////////////////
 
 static int iabs_int(int v)
@@ -125,76 +137,141 @@ static void oled_fill_round_rect(int x, int y, int w, int h, int r, bool color)
 }
 
 //////////////////////////////////////////////////////
-// Minion-style monochrome drawing
+// Moving minion-style drawing
 //////////////////////////////////////////////////////
 
-static void draw_minion_style(void)
+static void draw_minion_style(int x_offset, int frame)
 {
+    int ox = x_offset;
+
+    //////////////////////////////////////////////////////
+    // Frame-dependent movement
+    //////////////////////////////////////////////////////
+
+    int body_y = 2;
+    int eye_y = 22;
+
+    if (frame == 1)
+    {
+        body_y = 4;
+        eye_y = 24;
+    }
+    else if (frame == 2)
+    {
+        body_y = 1;
+        eye_y = 21;
+    }
+
     //////////////////////////////////////////////////////
     // Body
     //////////////////////////////////////////////////////
 
-    oled_fill_round_rect(32, 2, 64, 60, 16, true);
+    oled_fill_round_rect(32 + ox, body_y, 64, 60, 16, true);
 
     //////////////////////////////////////////////////////
     // Hair
     //////////////////////////////////////////////////////
 
-    oled_draw_line(58, 4, 54, 0, true);
-    oled_draw_line(64, 4, 64, 0, true);
-    oled_draw_line(70, 4, 74, 0, true);
+    oled_draw_line(58 + ox, body_y + 2, 54 + ox, body_y - 2, true);
+    oled_draw_line(64 + ox, body_y + 2, 64 + ox, body_y - 3, true);
+    oled_draw_line(70 + ox, body_y + 2, 74 + ox, body_y - 2, true);
 
     //////////////////////////////////////////////////////
-    // Arms
+    // Arms: 3 animation frames
     //////////////////////////////////////////////////////
 
-    oled_draw_line(34, 34, 20, 44, true);
-    oled_draw_line(94, 34, 108, 44, true);
+    if (frame == 0)
+    {
+        // Both arms down
+        oled_draw_line(34 + ox, body_y + 34, 20 + ox, body_y + 44, true);
+        oled_draw_line(94 + ox, body_y + 34, 108 + ox, body_y + 44, true);
 
-    oled_fill_circle(18, 45, 3, true);
-    oled_fill_circle(110, 45, 3, true);
+        oled_fill_circle(18 + ox, body_y + 45, 3, true);
+        oled_fill_circle(110 + ox, body_y + 45, 3, true);
+    }
+    else if (frame == 1)
+    {
+        // Left arm up, right arm down
+        oled_draw_line(34 + ox, body_y + 34, 20 + ox, body_y + 24, true);
+        oled_draw_line(94 + ox, body_y + 34, 108 + ox, body_y + 44, true);
+
+        oled_fill_circle(18 + ox, body_y + 23, 3, true);
+        oled_fill_circle(110 + ox, body_y + 45, 3, true);
+    }
+    else
+    {
+        // Left arm down, right arm up
+        oled_draw_line(34 + ox, body_y + 34, 20 + ox, body_y + 44, true);
+        oled_draw_line(94 + ox, body_y + 34, 108 + ox, body_y + 24, true);
+
+        oled_fill_circle(18 + ox, body_y + 45, 3, true);
+        oled_fill_circle(110 + ox, body_y + 23, 3, true);
+    }
 
     //////////////////////////////////////////////////////
     // Goggle strap
-    // false clears pixels, making black details
     //////////////////////////////////////////////////////
 
-    oled_fill_rect(34, 19, 60, 7, false);
+    oled_fill_rect(34 + ox, eye_y - 3, 60, 7, false);
 
     //////////////////////////////////////////////////////
     // One big goggle
     //////////////////////////////////////////////////////
 
-    oled_fill_circle(64, 22, 15, true);   // white outer ring
-    oled_fill_circle(64, 22, 10, false);  // black inside
-    oled_fill_circle(64, 22, 5, true);    // white eye
-    oled_fill_circle(66, 21, 2, false);   // black pupil
+    oled_fill_circle(64 + ox, eye_y, 15, true);
+    oled_fill_circle(64 + ox, eye_y, 10, false);
+    oled_fill_circle(64 + ox, eye_y, 5, true);
+
+    //////////////////////////////////////////////////////
+    // Moving pupil
+    //////////////////////////////////////////////////////
+
+    if (frame == 0)
+    {
+        oled_fill_circle(66 + ox, eye_y - 1, 2, false);
+    }
+    else if (frame == 1)
+    {
+        oled_fill_circle(62 + ox, eye_y, 2, false);
+    }
+    else
+    {
+        oled_fill_circle(68 + ox, eye_y, 2, false);
+    }
 
     //////////////////////////////////////////////////////
     // Mouth
     //////////////////////////////////////////////////////
 
-    oled_draw_line(54, 39, 74, 39, false);
-    oled_draw_line(56, 40, 72, 42, false);
+    if (frame == 0)
+    {
+        oled_draw_line(54 + ox, body_y + 39, 74 + ox, body_y + 39, false);
+    }
+    else if (frame == 1)
+    {
+        oled_draw_line(56 + ox, body_y + 40, 72 + ox, body_y + 42, false);
+    }
+    else
+    {
+        oled_draw_line(56 + ox, body_y + 42, 72 + ox, body_y + 40, false);
+    }
 
     //////////////////////////////////////////////////////
     // Overalls
     //////////////////////////////////////////////////////
 
-    oled_draw_line(48, 44, 58, 53, false);
-    oled_draw_line(80, 44, 70, 53, false);
+    oled_draw_line(48 + ox, body_y + 44, 58 + ox, body_y + 53, false);
+    oled_draw_line(80 + ox, body_y + 44, 70 + ox, body_y + 53, false);
 
-    oled_fill_rect(52, 52, 24, 9, false);
-
-    // Small pocket
-    oled_fill_rect(60, 55, 8, 4, true);
+    oled_fill_rect(52 + ox, body_y + 52, 24, 9, false);
+    oled_fill_rect(60 + ox, body_y + 55, 8, 4, true);
 
     //////////////////////////////////////////////////////
     // Legs
     //////////////////////////////////////////////////////
 
-    oled_fill_rect(54, 61, 8, 3, true);
-    oled_fill_rect(66, 61, 8, 3, true);
+    oled_fill_rect(54 + ox, body_y + 61, 8, 3, true);
+    oled_fill_rect(66 + ox, body_y + 61, 8, 3, true);
 }
 
 int main()
@@ -247,41 +324,96 @@ int main()
     ssd1306_show();
 
     //////////////////////////////////////////////////////
-    // Main loop
+    // Animation variables
     //////////////////////////////////////////////////////
 
+    const char big_message[] = "HOLA YENY, MUCHAS GRACIAS!";
+
+    int big_text_width = (int)strlen(big_message) * 6 * BIG_TEXT_SCALE;
+
+    // Start completely outside the right side
+    int big_text_x = SCREEN_WIDTH;
+
+    int minion_x = 0;
+    int minion_direction = 1;
+    int minion_frame = 0;
+
     bool led_state = false;
+
+    //////////////////////////////////////////////////////
+    // Main loop
+    //////////////////////////////////////////////////////
 
     while (true)
     {
         //////////////////////////////////////////////////////
-        // OLED 1: Super big text
+        // OLED 1: Big scrolling text, right to left
         //////////////////////////////////////////////////////
 
         ssd1306_set_i2c_port(I2C_PORT_OLED_1);
 
         ssd1306_clear();
 
-        // Scale 6 gives very large text.
-        // "HI!" fits nicely on 128x64.
-        ssd1306_draw_string_scaled(10, 10, "HOLA YENY!", 6);
-
-        // Smaller subtitle
-        ssd1306_draw_string(28, 58, "OLED 1");
+        ssd1306_draw_string_scaled(
+            big_text_x,
+            BIG_TEXT_Y,
+            big_message,
+            BIG_TEXT_SCALE
+        );
 
         ssd1306_show();
 
         //////////////////////////////////////////////////////
-        // OLED 2: Minion-style drawing
+        // OLED 2: Moving minion-style animation
         //////////////////////////////////////////////////////
 
         ssd1306_set_i2c_port(I2C_PORT_OLED_2);
 
         ssd1306_clear();
 
-        draw_minion_style();
+        draw_minion_style(minion_x, minion_frame);
 
         ssd1306_show();
+
+        //////////////////////////////////////////////////////
+        // Update big text position: right to left
+        //////////////////////////////////////////////////////
+
+        big_text_x -= BIG_TEXT_SPEED;
+
+        // When the complete text leaves the left side,
+        // restart from the right side.
+        if (big_text_x < -big_text_width)
+        {
+            big_text_x = SCREEN_WIDTH;
+        }
+
+        //////////////////////////////////////////////////////
+        // Update minion movement
+        //////////////////////////////////////////////////////
+
+        minion_x += minion_direction;
+
+        if (minion_x > 10)
+        {
+            minion_direction = -1;
+        }
+
+        if (minion_x < -10)
+        {
+            minion_direction = 1;
+        }
+
+        //////////////////////////////////////////////////////
+        // Update minion animation frame
+        //////////////////////////////////////////////////////
+
+        minion_frame++;
+
+        if (minion_frame >= 3)
+        {
+            minion_frame = 0;
+        }
 
         //////////////////////////////////////////////////////
         // Blink onboard LED
@@ -290,6 +422,6 @@ int main()
         led_state = !led_state;
         gpio_put(LED_PIN, led_state);
 
-        sleep_ms(500);
+        sleep_ms(80);
     }
 }
