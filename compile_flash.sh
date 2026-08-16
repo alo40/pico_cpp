@@ -10,9 +10,11 @@ if [ "$1" = "clean" ]; then
     rm -rf build
 fi
 
-cp oled_space.c main.c
+cp pico_4displays_uartRx.c main.c
+# cp oled_multiple_4displays.c main.c
+# cp oled_space.c main.c
 # cp oled_yeny.c main.c
-# cp oled_multiple.c main.c
+# cp oled_multiple_2displays.c main.c
 # cp oled_dynamic.c main.c
 # cp oled_time.c main.c # previous script
 

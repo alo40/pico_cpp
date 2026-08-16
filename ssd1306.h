@@ -10,12 +10,17 @@
 #define SSD1306_ADDR 0x3C
 
 void ssd1306_init(i2c_inst_t *i2c);
+void ssd1306_init_sw(uint sda_pin, uint scl_pin);
+
 void ssd1306_clear(void);
 void ssd1306_draw_pixel(int x, int y, bool color);
 void ssd1306_draw_char(int x, int y, char c);
 void ssd1306_draw_string(int x, int y, const char *str);
 void ssd1306_show(void);
+
 void ssd1306_set_i2c_port(i2c_inst_t *i2c);
+void ssd1306_set_sw_i2c_pins(uint sda_pin, uint scl_pin);
+
 void ssd1306_draw_char_scaled(int x, int y, char c, int scale);
 void ssd1306_draw_string_scaled(int x, int y, const char *str, int scale);
 
