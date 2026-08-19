@@ -12,8 +12,8 @@ set(CMAKE_CXX_STANDARD 17)
 pico_sdk_init()
 
 add_executable(pico_app
-    main.c
-    ssd1306.c
+    src/main.c
+    src/ssd1306.c
 )
 
 target_link_libraries(pico_app
@@ -24,7 +24,7 @@ target_link_libraries(pico_app
 )
 
 target_include_directories(pico_app PRIVATE
-    ${CMAKE_CURRENT_LIST_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
 pico_enable_stdio_usb(pico_app 1)

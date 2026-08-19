@@ -1,5 +1,4 @@
 .
-├── blink.c
 ├── build
 │   ├── build.ninja
 │   ├── cmake_install.cmake
@@ -526,37 +525,44 @@
 │   ├── pico-sdk 2
 │   ├── pioasm
 │   └── pioasm-install
-├── clang_test.c
 ├── CMakeLists.txt
-├── COMMANDS
-├── compile_flash.sh
-├── compile.sh
-├── indicators_4LED.c
-├── indicators_8LED.c
-├── main.c
-├── next_steps.md
-├── oled_dynamic.c
-├── oled_multiple_2displays.c
-├── oled_multiple_4displays.c
-├── oled_numbers.c
-├── oled_space.c
-├── oled_time.c
-├── oled_yeny.c
-├── pico_4displays_uartRx.c
+├── docs
+│   ├── COMMANDS
+│   └── next_steps.md
+├── examples
+│   ├── blink.c
+│   ├── clang_test.c
+│   ├── hello_world.cpp
+│   ├── indicators_4LED.c
+│   ├── indicators_8LED.c
+│   ├── oled_dynamic.c
+│   ├── oled_multiple_2displays.c
+│   ├── oled_multiple_4displays.c
+│   ├── oled_numbers.c
+│   ├── oled_space.c
+│   ├── oled_time.c
+│   ├── oled_yeny.c
+│   ├── pico_4displays_uartRx.c
+│   ├── return_tick.c
+│   └── return_value.c
+├── include
+│   └── ssd1306.h
 ├── README.md
-├── return_tick.c
-├── return_value.c
-├── ssd1306.c
-├── ssd1306.h
+├── scripts
+│   ├── compile_flash.sh
+│   └── compile.sh
+├── src
+│   ├── main.c
+│   └── ssd1306.c
 ├── tests
-│   ├── Compiler_Test
+│   ├── compiler
 │   │   ├── main
 │   │   ├── main.bc
 │   │   ├── main.c
 │   │   ├── main.i
 │   │   ├── main.o
 │   │   └── main.s
-│   └── Linking_Test
+│   └── linking
 │       ├── executable
 │       ├── greet.bc
 │       ├── greet.c
@@ -568,8 +574,6 @@
 │       ├── main.i
 │       ├── main.o
 │       └── main.s
-├── training
-│   └── hello_world.cpp
 └── tree.log
 
-304 directories, 269 files
+308 directories, 269 files
