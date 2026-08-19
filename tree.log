@@ -1,0 +1,575 @@
+.
+├── blink.c
+├── build
+│   ├── build.ninja
+│   ├── cmake_install.cmake
+│   ├── CMakeCache.txt
+│   ├── CMakeFiles
+│   │   ├── 4.2.1
+│   │   │   ├── CMakeASMCompiler.cmake
+│   │   │   ├── CMakeCCompiler.cmake
+│   │   │   ├── CMakeCXXCompiler.cmake
+│   │   │   ├── CMakeDetermineCompilerABI_C.bin
+│   │   │   ├── CMakeDetermineCompilerABI_CXX.bin
+│   │   │   ├── CMakeSystem.cmake
+│   │   │   ├── CompilerIdASM
+│   │   │   ├── CompilerIdC
+│   │   │   │   ├── CMakeCCompilerId.c
+│   │   │   │   ├── CMakeCCompilerId.o
+│   │   │   │   └── tmp
+│   │   │   └── CompilerIdCXX
+│   │   │       ├── CMakeCXXCompilerId.cpp
+│   │   │       ├── CMakeCXXCompilerId.o
+│   │   │       └── tmp
+│   │   ├── cmake.check_cache
+│   │   ├── CMakeConfigureLog.yaml
+│   │   ├── CMakeScratch
+│   │   ├── InstallScripts.json
+│   │   ├── pico_app.dir
+│   │   │   ├── main.c.o
+│   │   │   ├── ssd1306.c.o
+│   │   │   └── Users
+│   │   │       └── alejandronietocuatenta
+│   │   │           └── Documents
+│   │   │               └── pico
+│   │   │                   └── pico-sdk
+│   │   │                       ├── lib
+│   │   │                       │   └── tinyusb
+│   │   │                       │       └── src
+│   │   │                       │           ├── class
+│   │   │                       │           │   ├── audio
+│   │   │                       │           │   │   └── audio_device.c.o
+│   │   │                       │           │   ├── cdc
+│   │   │                       │           │   │   └── cdc_device.c.o
+│   │   │                       │           │   ├── dfu
+│   │   │                       │           │   │   ├── dfu_device.c.o
+│   │   │                       │           │   │   └── dfu_rt_device.c.o
+│   │   │                       │           │   ├── hid
+│   │   │                       │           │   │   └── hid_device.c.o
+│   │   │                       │           │   ├── midi
+│   │   │                       │           │   │   └── midi_device.c.o
+│   │   │                       │           │   ├── msc
+│   │   │                       │           │   │   └── msc_device.c.o
+│   │   │                       │           │   ├── net
+│   │   │                       │           │   │   ├── ecm_rndis_device.c.o
+│   │   │                       │           │   │   └── ncm_device.c.o
+│   │   │                       │           │   ├── usbtmc
+│   │   │                       │           │   │   └── usbtmc_device.c.o
+│   │   │                       │           │   ├── vendor
+│   │   │                       │           │   │   └── vendor_device.c.o
+│   │   │                       │           │   └── video
+│   │   │                       │           │       └── video_device.c.o
+│   │   │                       │           ├── common
+│   │   │                       │           │   └── tusb_fifo.c.o
+│   │   │                       │           ├── device
+│   │   │                       │           │   ├── usbd_control.c.o
+│   │   │                       │           │   └── usbd.c.o
+│   │   │                       │           ├── portable
+│   │   │                       │           │   └── raspberrypi
+│   │   │                       │           │       └── rp2040
+│   │   │                       │           │           ├── dcd_rp2040.c.o
+│   │   │                       │           │           └── rp2040_usb.c.o
+│   │   │                       │           └── tusb.c.o
+│   │   │                       └── src
+│   │   │                           ├── common
+│   │   │                           │   ├── hardware_claim
+│   │   │                           │   │   └── claim.c.o
+│   │   │                           │   ├── pico_sync
+│   │   │                           │   │   ├── critical_section.c.o
+│   │   │                           │   │   ├── lock_core.c.o
+│   │   │                           │   │   ├── mutex.c.o
+│   │   │                           │   │   └── sem.c.o
+│   │   │                           │   ├── pico_time
+│   │   │                           │   │   ├── time.c.o
+│   │   │                           │   │   └── timeout_helper.c.o
+│   │   │                           │   └── pico_util
+│   │   │                           │       ├── datetime.c.o
+│   │   │                           │       ├── pheap.c.o
+│   │   │                           │       └── queue.c.o
+│   │   │                           ├── rp2_common
+│   │   │                           │   ├── hardware_adc
+│   │   │                           │   │   └── adc.c.o
+│   │   │                           │   ├── hardware_boot_lock
+│   │   │                           │   │   └── boot_lock.c.o
+│   │   │                           │   ├── hardware_clocks
+│   │   │                           │   │   └── clocks.c.o
+│   │   │                           │   ├── hardware_divider
+│   │   │                           │   │   └── divider.S.o
+│   │   │                           │   ├── hardware_flash
+│   │   │                           │   │   └── flash.c.o
+│   │   │                           │   ├── hardware_gpio
+│   │   │                           │   │   └── gpio.c.o
+│   │   │                           │   ├── hardware_i2c
+│   │   │                           │   │   └── i2c.c.o
+│   │   │                           │   ├── hardware_irq
+│   │   │                           │   │   ├── irq_handler_chain.S.o
+│   │   │                           │   │   └── irq.c.o
+│   │   │                           │   ├── hardware_pll
+│   │   │                           │   │   └── pll.c.o
+│   │   │                           │   ├── hardware_sync
+│   │   │                           │   │   └── sync.c.o
+│   │   │                           │   ├── hardware_sync_spin_lock
+│   │   │                           │   │   └── sync_spin_lock.c.o
+│   │   │                           │   ├── hardware_ticks
+│   │   │                           │   │   └── ticks.c.o
+│   │   │                           │   ├── hardware_timer
+│   │   │                           │   │   └── timer.c.o
+│   │   │                           │   ├── hardware_uart
+│   │   │                           │   │   └── uart.c.o
+│   │   │                           │   ├── hardware_vreg
+│   │   │                           │   │   └── vreg.c.o
+│   │   │                           │   ├── hardware_watchdog
+│   │   │                           │   │   └── watchdog.c.o
+│   │   │                           │   ├── hardware_xip_cache
+│   │   │                           │   │   └── xip_cache.c.o
+│   │   │                           │   ├── hardware_xosc
+│   │   │                           │   │   └── xosc.c.o
+│   │   │                           │   ├── pico_atomic
+│   │   │                           │   │   └── atomic.c.o
+│   │   │                           │   ├── pico_bit_ops
+│   │   │                           │   │   └── bit_ops_aeabi.S.o
+│   │   │                           │   ├── pico_bootrom
+│   │   │                           │   │   ├── bootrom_lock.c.o
+│   │   │                           │   │   └── bootrom.c.o
+│   │   │                           │   ├── pico_clib_interface
+│   │   │                           │   │   └── newlib_interface.c.o
+│   │   │                           │   ├── pico_crt0
+│   │   │                           │   │   └── crt0.S.o
+│   │   │                           │   ├── pico_cxx_options
+│   │   │                           │   │   └── new_delete.cpp.o
+│   │   │                           │   ├── pico_divider
+│   │   │                           │   │   └── divider_hardware.S.o
+│   │   │                           │   ├── pico_double
+│   │   │                           │   │   ├── double_aeabi_rp2040.S.o
+│   │   │                           │   │   ├── double_init_rom_rp2040.c.o
+│   │   │                           │   │   ├── double_math.c.o
+│   │   │                           │   │   └── double_v1_rom_shim_rp2040.S.o
+│   │   │                           │   ├── pico_fix
+│   │   │                           │   │   └── rp2040_usb_device_enumeration
+│   │   │                           │   │       └── rp2040_usb_device_enumeration.c.o
+│   │   │                           │   ├── pico_flash
+│   │   │                           │   │   └── flash.c.o
+│   │   │                           │   ├── pico_float
+│   │   │                           │   │   ├── float_aeabi_rp2040.S.o
+│   │   │                           │   │   ├── float_init_rom_rp2040.c.o
+│   │   │                           │   │   ├── float_math.c.o
+│   │   │                           │   │   └── float_v1_rom_shim_rp2040.S.o
+│   │   │                           │   ├── pico_int64_ops
+│   │   │                           │   │   └── pico_int64_ops_aeabi.S.o
+│   │   │                           │   ├── pico_malloc
+│   │   │                           │   │   └── malloc.c.o
+│   │   │                           │   ├── pico_mem_ops
+│   │   │                           │   │   └── mem_ops_aeabi.S.o
+│   │   │                           │   ├── pico_platform_common
+│   │   │                           │   │   └── common.c.o
+│   │   │                           │   ├── pico_platform_panic
+│   │   │                           │   │   └── panic.c.o
+│   │   │                           │   ├── pico_printf
+│   │   │                           │   │   └── printf.c.o
+│   │   │                           │   ├── pico_runtime
+│   │   │                           │   │   └── runtime.c.o
+│   │   │                           │   ├── pico_runtime_init
+│   │   │                           │   │   ├── runtime_init_clocks.c.o
+│   │   │                           │   │   ├── runtime_init_stack_guard.c.o
+│   │   │                           │   │   └── runtime_init.c.o
+│   │   │                           │   ├── pico_standard_binary_info
+│   │   │                           │   │   └── standard_binary_info.c.o
+│   │   │                           │   ├── pico_stdio
+│   │   │                           │   │   └── stdio.c.o
+│   │   │                           │   ├── pico_stdio_usb
+│   │   │                           │   │   ├── reset_interface.c.o
+│   │   │                           │   │   ├── stdio_usb_descriptors.c.o
+│   │   │                           │   │   └── stdio_usb.c.o
+│   │   │                           │   ├── pico_stdlib
+│   │   │                           │   │   └── stdlib.c.o
+│   │   │                           │   └── pico_unique_id
+│   │   │                           │       └── unique_id.c.o
+│   │   │                           └── rp2040
+│   │   │                               └── pico_platform
+│   │   │                                   └── platform.c.o
+│   │   ├── pkgRedirects
+│   │   ├── rules.ninja
+│   │   └── TargetDirectories.txt
+│   ├── CMakeFiles 2
+│   ├── compile_commands.json
+│   ├── generated
+│   │   └── pico_base
+│   │       └── pico
+│   │           ├── config_autogen.h
+│   │           └── version.h
+│   ├── pico_app.bin
+│   ├── pico_app.dis
+│   ├── pico_app.elf
+│   ├── pico_app.elf.map
+│   ├── pico_app.hex
+│   ├── pico_app.uf2
+│   ├── pico_flash_region.ld
+│   ├── pico-sdk
+│   │   ├── cmake_install.cmake
+│   │   ├── CMakeFiles
+│   │   ├── docs
+│   │   │   ├── cmake_install.cmake
+│   │   │   └── CMakeFiles
+│   │   ├── src
+│   │   │   ├── cmake_install.cmake
+│   │   │   ├── CMakeFiles
+│   │   │   ├── common
+│   │   │   │   ├── boot_picobin_headers
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── boot_picoboot_headers
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── boot_uf2_headers
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── hardware_claim
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── pico_base_headers
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── pico_binary_info
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── pico_bit_ops_headers
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── pico_divider_headers
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── pico_stdlib_headers
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── pico_sync
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── pico_time
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── pico_usb_reset_interface_headers
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   └── pico_util
+│   │   │   │       ├── cmake_install.cmake
+│   │   │   │       └── CMakeFiles
+│   │   │   ├── extra_doxygen
+│   │   │   │   ├── dreq.h
+│   │   │   │   └── intctrl.h
+│   │   │   ├── rp2_common
+│   │   │   │   ├── boot_bootrom_headers
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── cmsis
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── hardware_adc
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── hardware_base
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── hardware_boot_lock
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── hardware_clocks
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── hardware_divider
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── hardware_dma
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── hardware_exception
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── hardware_flash
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── hardware_gpio
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── hardware_i2c
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── hardware_interp
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── hardware_irq
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── hardware_pio
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── hardware_pll
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── hardware_pwm
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── hardware_resets
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── hardware_rtc
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── hardware_spi
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── hardware_sync
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── hardware_sync_spin_lock
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── hardware_ticks
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── hardware_timer
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── hardware_uart
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── hardware_vreg
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── hardware_watchdog
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── hardware_xip_cache
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── hardware_xosc
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── pico_aon_timer
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── pico_async_context
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── pico_atomic
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── pico_bit_ops
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── pico_bootrom
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── pico_bootsel_via_double_reset
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── pico_btstack
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── pico_clib_interface
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── pico_crt0
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── pico_cxx_options
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── pico_cyw43_arch
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── pico_cyw43_driver
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   ├── CMakeFiles
+│   │   │   │   │   │   └── pioasmBuild.dir
+│   │   │   │   │   │       ├── Labels.json
+│   │   │   │   │   │       └── Labels.txt
+│   │   │   │   │   ├── cybt_shared_bus
+│   │   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   │   └── CMakeFiles
+│   │   │   │   │   └── pioasm
+│   │   │   │   │       ├── src
+│   │   │   │   │       │   └── pioasmBuild-stamp
+│   │   │   │   │       │       ├── pioasmBuild-patch-info.txt
+│   │   │   │   │       │       ├── pioasmBuild-source_dirinfo.txt
+│   │   │   │   │       │       └── pioasmBuild-update-info.txt
+│   │   │   │   │       └── tmp
+│   │   │   │   │           ├── pioasmBuild-cache-Release.cmake
+│   │   │   │   │           ├── pioasmBuild-cfgcmd.txt
+│   │   │   │   │           └── pioasmBuild-mkdirs.cmake
+│   │   │   │   ├── pico_divider
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── pico_double
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── pico_fix
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   ├── CMakeFiles
+│   │   │   │   │   └── rp2040_usb_device_enumeration
+│   │   │   │   │       ├── cmake_install.cmake
+│   │   │   │   │       └── CMakeFiles
+│   │   │   │   ├── pico_flash
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── pico_float
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── pico_i2c_slave
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── pico_int64_ops
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── pico_lwip
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   ├── CMakeFiles
+│   │   │   │   │   └── tools
+│   │   │   │   │       ├── cmake_install.cmake
+│   │   │   │   │       └── CMakeFiles
+│   │   │   │   ├── pico_malloc
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── pico_mbedtls
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── pico_mem_ops
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── pico_multicore
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── pico_platform_common
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── pico_platform_compiler
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── pico_platform_panic
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── pico_platform_sections
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── pico_printf
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── pico_rand
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── pico_runtime
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── pico_runtime_init
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── pico_standard_binary_info
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── pico_standard_link
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── pico_status_led
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── pico_stdio
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── pico_stdio_rtt
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── pico_stdio_semihosting
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── pico_stdio_uart
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── pico_stdio_usb
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── pico_stdlib
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── pico_time_adapter
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   ├── pico_unique_id
+│   │   │   │   │   ├── cmake_install.cmake
+│   │   │   │   │   └── CMakeFiles
+│   │   │   │   └── tinyusb
+│   │   │   │       ├── cmake_install.cmake
+│   │   │   │       └── CMakeFiles
+│   │   │   └── rp2040
+│   │   │       ├── boot_stage2
+│   │   │       │   ├── bs2_default_padded_checksummed.S
+│   │   │       │   ├── bs2_default.bin
+│   │   │       │   ├── bs2_default.dis
+│   │   │       │   ├── bs2_default.elf
+│   │   │       │   ├── bs2_default.elf.map
+│   │   │       │   ├── cmake_install.cmake
+│   │   │       │   └── CMakeFiles
+│   │   │       │       ├── bs2_default_library.dir
+│   │   │       │       │   └── bs2_default_padded_checksummed.S.o
+│   │   │       │       └── bs2_default.dir
+│   │   │       │           └── compile_time_choice.S.o
+│   │   │       ├── hardware_regs
+│   │   │       │   ├── cmake_install.cmake
+│   │   │       │   └── CMakeFiles
+│   │   │       ├── hardware_structs
+│   │   │       │   ├── cmake_install.cmake
+│   │   │       │   └── CMakeFiles
+│   │   │       └── pico_platform
+│   │   │           ├── cmake_install.cmake
+│   │   │           └── CMakeFiles
+│   │   └── tools
+│   │       ├── cmake_install.cmake
+│   │       └── CMakeFiles
+│   ├── pico-sdk 2
+│   ├── pioasm
+│   └── pioasm-install
+├── clang_test.c
+├── CMakeLists.txt
+├── COMMANDS
+├── compile_flash.sh
+├── compile.sh
+├── indicators_4LED.c
+├── indicators_8LED.c
+├── main.c
+├── next_steps.md
+├── oled_dynamic.c
+├── oled_multiple_2displays.c
+├── oled_multiple_4displays.c
+├── oled_numbers.c
+├── oled_space.c
+├── oled_time.c
+├── oled_yeny.c
+├── pico_4displays_uartRx.c
+├── README.md
+├── return_tick.c
+├── return_value.c
+├── ssd1306.c
+├── ssd1306.h
+├── tests
+│   ├── Compiler_Test
+│   │   ├── main
+│   │   ├── main.bc
+│   │   ├── main.c
+│   │   ├── main.i
+│   │   ├── main.o
+│   │   └── main.s
+│   └── Linking_Test
+│       ├── executable
+│       ├── greet.bc
+│       ├── greet.c
+│       ├── greet.i
+│       ├── greet.o
+│       ├── greet.s
+│       ├── main.bc
+│       ├── main.c
+│       ├── main.i
+│       ├── main.o
+│       └── main.s
+├── training
+│   └── hello_world.cpp
+└── tree.log
+
+304 directories, 269 files
