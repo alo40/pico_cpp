@@ -322,7 +322,6 @@ Tasks:
 * [x] Run the logger against the real flashed firmware.
 * [x] Verify a real raw log and processed CSV.
 * [ ] Verify long-duration logging after UART RX overflow detection is in place.
-* [ ] Later consider file rotation beyond one file pair per session.
 
 **Status:** Short-session persistence verified; long-duration verification remains
 
@@ -333,16 +332,30 @@ operational topology because logging must continue without the Mac.
 
 ### 6.4 Raspberry Pi persistent logger
 
-* [ ] Confirm the Pico serial device on Raspberry Pi.
-* [ ] Adapt or deploy the logging workflow on Raspberry Pi.
+* [x] Use the stable Pico device under `/dev/serial/by-id/` on Raspberry Pi.
+* [x] Deploy the logger as system service `vedirect-logger.service`.
 * [x] Document the persistent Raspberry Pi data root as `~/pico_cpp/data/`.
-* [ ] Define unattended logger startup and lifecycle management.
+* [x] Define unattended logger startup and lifecycle management with systemd.
 * [x] Verify active raw and processed storage on Raspberry Pi through real
   synchronization.
 * [x] Verify Raspberry Pi acquisition continues while the Mac synchronizes.
+* [x] Verify logging continues after its administering SSH session ends.
+* [x] Verify clean stop/start and controlled restart with same-day append.
+* [x] Rotate aligned raw and processed files at local date boundaries inside the
+  continuously running Python logger.
+* [x] Write one CSV header for a new/empty daily file and avoid duplicate
+  headers after same-day restart.
+* [x] Preserve historical timestamped session files without migration.
+* [x] Verify daily naming and same-day restart behavior on Raspberry Pi.
+* [x] Observe a real midnight file rollover on Raspberry Pi.
+* [x] Enable boot startup through `multi-user.target`.
+* [ ] Verify automatic recovery with a deliberate failure test.
+* [ ] Verify boot startup through a real Raspberry Pi reboot.
 * [ ] Verify logging continues with the Mac disconnected.
 
-**Priority:** Immediate architecture-enablement work
+**Status:** systemd lifecycle operational and daily file rotation verified on
+the real Raspberry Pi; fault injection, reboot, and full Mac-disconnection
+verification remain pending
 
 ---
 
@@ -441,22 +454,28 @@ explicit model and appropriate supporting data.
 
 # Current Priority Order
 
-The first direct-to-Mac dataset, integrity analysis, and plots are complete.
-The immediate priority is enabling the new unattended architecture without
-coupling storage, transfer, and analysis.
+The first direct-to-Mac dataset, integrity analysis, plots, Raspberry Pi
+systemd service, and manual synchronization are complete. The next open
+architecture-level validation is the full disconnect -> acquire -> reconnect
+-> synchronize -> analyze workflow.
 
 ## Priority 1 — Confirm Raspberry Pi USB acquisition
 
-* [ ] Identify the Pico serial device on Raspberry Pi.
-* [ ] Verify the CSV header and rows on Raspberry Pi.
-* [ ] Confirm device access and permissions.
+* [x] Identify and use the stable Pico serial device on Raspberry Pi.
+* [x] Verify the CSV header and rows on Raspberry Pi.
+* [x] Confirm device access and permissions for user `fori`.
 
 ## Priority 2 — Deploy persistent Raspberry Pi logging
 
-* [ ] Adapt or deploy the existing logger on Raspberry Pi.
+* [x] Deploy the existing logger as `vedirect-logger.service`.
 * [x] Use `~/pico_cpp/data/` as the persistent Raspberry Pi data root.
 * [x] Confirm active raw and processed output on the target host.
-* [ ] Define unattended startup and lifecycle management.
+* [x] Define and verify systemd stop/start/restart lifecycle management.
+* [x] Implement and verify same-day append to daily raw/processed files.
+* [x] Enable systemd startup for normal boot.
+* [ ] Verify enabled startup with a real reboot.
+* [ ] Fault-inject an unexpected logger failure if additional recovery evidence
+  is required.
 * [x] Confirm acquisition continues while synchronization runs.
 * [ ] Verify logging continues while the Mac is disconnected.
 

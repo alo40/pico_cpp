@@ -56,8 +56,8 @@ acquisition -> storage -> synchronization -> analysis
 * Stores raw serial logs and processed CSV data.
 * Acts as the always-on edge/data-logging host.
 
-The Pico serial device on Raspberry Pi still needs confirmation. The persistent
-Raspberry Pi data root is:
+Raspberry Pi uses the confirmed stable Pico device under `/dev/serial/by-id/`.
+The persistent Raspberry Pi data root is:
 
 ```text
 ~/pico_cpp/data/
@@ -113,6 +113,95 @@ scripts and documented transfer commands use the SSH host directly.
    `.csv` files with `rsync`.
 5. The notebook loads the synchronized local CSV; it never fetches the file.
 
+## Unattended Raspberry Pi logging with systemd
+
+Raspberry Pi runs the logger as the system service
+`vedirect-logger.service`. This removes the active SSH-terminal dependency;
+SSH is now administration-only.
+
+The version-controlled unit is `systemd/vedirect-logger.service` and is
+installed as `/etc/systemd/system/vedirect-logger.service`. It runs as the
+normal user `fori` with:
+
+```text
+WorkingDirectory=/home/fori/pico_cpp
+ExecStart=/usr/bin/python3 /home/fori/pico_cpp/scripts/log_vedirect.py --port /dev/serial/by-id/usb-Raspberry_Pi_Pico_E6609103C37E4023-if00
+```
+
+The stable `/dev/serial/by-id/` path is used instead of `/dev/ttyACM0`.
+`KillSignal=SIGINT` lets the logger follow its existing Ctrl+C shutdown path,
+flush and close its files, and report its final sample count. Unexpected
+failures are configured for retry with `Restart=on-failure` and
+`RestartSec=5`; fault recovery has not been deliberately injected.
+
+Common administration commands are:
+
+```sh
+sudo systemctl status vedirect-logger.service --no-pager
+sudo systemctl start vedirect-logger.service
+sudo systemctl stop vedirect-logger.service
+sudo systemctl restart vedirect-logger.service
+journalctl -u vedirect-logger.service --no-pager
+```
+
+The service is enabled for `multi-user.target`, but startup after a real reboot
+has not yet been tested. A manual stop remains stopped. Do not run a second
+manual logger while systemd owns the Pico serial device.
+
+### Daily measurement files
+
+The systemd service lifetime and measurement-file lifetime are independent.
+The Python process may run continuously for days or weeks while the logger
+rotates both output files at each Raspberry Pi local calendar-day boundary:
+
+```text
+data/raw/vedirect_YYYY-MM-DD.log
+data/processed/vedirect_YYYY-MM-DD.csv
+```
+
+Rotation occurs when the next serial line is received after the local date
+changes. The serial port and Python process remain open; only the previous
+raw/processed files are closed and the new date's pair is opened. One host-local
+time value determines both the file date and a valid row's timestamp.
+
+A same-day service restart reopens the same daily files in append mode. Existing
+content is preserved, and the processed CSV header is written only when the
+file is new or empty. A restart on another date naturally selects that date's
+files. Historical timestamped session files such as
+`vedirect_2026-09-05_230319.csv` remain untouched and are not migrated.
+
+Service lifecycle and diagnostic messages go to the systemd journal.
+Measurement data remains under:
+
+```text
+/home/fori/pico_cpp/data/raw/
+/home/fori/pico_cpp/data/processed/
+```
+
+On the real target, the manual logger was stopped cleanly with SIGINT before
+the service started. New files were observed growing, logging continued after
+the SSH verification session ended, and controlled service stop/start behavior
+was verified.
+
+Daily naming and same-day append behavior were also verified on Raspberry Pi.
+A controlled same-day restart reused `vedirect_2026-09-05.log` and
+`vedirect_2026-09-05.csv`, preserved existing rows, appended new measurements,
+and retained exactly one CSV header. Real midnight rollover was subsequently
+observed from 2026-09-05 to 2026-09-06: `vedirect-logger.service` remained
+continuously active with the same Python PID (4829), and the first received
+serial line after midnight opened:
+
+```text
+/home/fori/pico_cpp/data/raw/vedirect_2026-09-06.log
+/home/fori/pico_cpp/data/processed/vedirect_2026-09-06.csv
+```
+
+The Python process and serial connection were not restarted, acquisition
+continued, and the first processed timestamp was
+`2026-09-06T00:00:00.892+02:00`. This confirms that the filename date and CSV
+timestamp use the same Raspberry Pi local calendar date. Daily rollover is now
+verified both by automated tests and on the real target.
+
 The exact transfers are:
 
 ```text
@@ -132,8 +221,9 @@ to Raspberry Pi.
 
 Files being actively appended on Raspberry Pi may be copied. Such a local file
 represents the remote file at synchronization time; a later run updates it.
-This is acceptable for the initial manual workflow. Immutable snapshots or
-completed-session handling can be considered later if analysis requires them.
+During the day this is normally the current daily file; after midnight, rsync
+will update the new day's active file while the prior daily file normally stops
+changing. This is acceptable for the initial manual workflow.
 
 ### Verification status
 
@@ -148,9 +238,10 @@ The manual workflow has been verified on the real Mac/Raspberry Pi system:
   synchronized it.
 
 This verifies full and incremental manual synchronization, freshness metadata,
-and the documented active-file behavior. It does not yet verify unattended
-logger startup/recovery, long-duration acquisition, or the complete
-disconnect -> acquire -> reconnect -> synchronize -> analyze workflow.
+and the documented active-file behavior. It does not yet verify fault-injected
+automatic recovery, boot startup after a real reboot, long-duration
+acquisition, or the complete disconnect -> acquire -> reconnect -> synchronize
+-> analyze workflow.
 
 The target processed schema remains:
 

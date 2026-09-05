@@ -25,30 +25,43 @@ analyze synchronized local files rather than access Raspberry Pi directly.
 - [x] Create and execute the first local data-inspection notebook.
 - [x] Produce integrity statistics and four basic time-series plots.
 
-These results remain valid. Raspberry Pi logging and synchronization are now
-operating, but unattended startup/recovery has not yet been verified.
+These results remain valid. Raspberry Pi logging is now managed by systemd and
+synchronization is operating. Fault-injected recovery and boot-after-reboot
+verification remain pending.
 
 ## Phase 3: Raspberry Pi logging host
 
 ### 3.1 Confirm the Pico connection
 
-- [ ] Connect the Pico to Raspberry Pi over USB.
-- [ ] Identify the stable Raspberry Pi serial device used by the Pico.
-- [ ] Confirm the Pico CSV header and rows can be read on Raspberry Pi.
-- [ ] Record any device-permission or group requirements.
+- [x] Connect the Pico to Raspberry Pi over USB.
+- [x] Use stable serial device
+  `/dev/serial/by-id/usb-Raspberry_Pi_Pico_E6609103C37E4023-if00`.
+- [x] Confirm the Pico CSV header and rows can be read on Raspberry Pi.
+- [x] Confirm user `fori` has serial access through `plugdev`.
 
 ### 3.2 Deploy persistent logging
 
-- [ ] Adapt or deploy the existing logging workflow on Raspberry Pi.
+- [x] Deploy `vedirect-logger.service` as a system service on Raspberry Pi.
 - [x] Document the persistent Raspberry Pi data root as `~/pico_cpp/data/`.
 - [x] Confirm active raw `.log` and processed `.csv` files are stored there.
 - [x] Confirm Raspberry Pi acquisition continues while the Mac synchronizes.
-- [ ] Decide how the logger starts and remains running unattended.
-- [ ] Verify restart and failure behavior appropriate for persistent operation.
+- [x] Define unattended startup and lifecycle management with systemd.
+- [x] Enable the service for `multi-user.target` boot startup.
+- [x] Verify logging survives termination of the administering SSH session.
+- [x] Verify clean manual stop/start and controlled service restart behavior.
+- [x] Implement one aligned raw/processed file pair per local calendar day.
+- [x] Verify a same-day service restart appends to the same daily files.
+- [x] Verify existing content is preserved and the CSV header is not duplicated.
+- [x] Unit-test file-only midnight rollover without restarting Python or the
+  serial connection.
+- [x] Observe a real midnight rollover on Raspberry Pi.
+- [ ] Verify automatic recovery through a deliberate unexpected-failure test.
+- [ ] Verify service startup after a real Raspberry Pi reboot.
 - [ ] Verify logging continues while the Mac is disconnected.
 
-Do not describe the Raspberry Pi logger as operationally complete until these
-steps have been tested on the target host.
+Automatic recovery is configured with `Restart=on-failure` and `RestartSec=5`,
+but has not been fault-injected. Boot startup is configured but has not been
+verified by rebooting the Raspberry Pi.
 
 ## Phase 4: Separate synchronization
 
@@ -70,9 +83,9 @@ steps have been tested on the target host.
 Synchronization is a distinct operation. It must not be embedded in the
 Jupyter notebook.
 
-The initial sync may copy a remote file while it is still being appended. That
-local copy represents the source at synchronization time and will be updated by
-a later sync; completed-session/snapshot semantics remain future work if needed.
+The initial sync may copy the current daily file while it is still being
+appended. That local copy represents the source at synchronization time and
+will be updated by a later sync.
 
 ## Phase 5: Analyze synchronized local data
 
