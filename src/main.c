@@ -3,6 +3,7 @@
 #include "hardware/irq.h"
 #include "pico/stdlib.h"
 #include "ssd1306.h"
+#include "vedirect_parser.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -71,7 +72,7 @@ static volatile uint16_t rx_tail = 0;
 static volatile uint32_t uart_irq_count = 0;
 static volatile uint32_t uart_rx_byte_count = 0;
 
-static uint32_t ve_block_count = 0;
+static vedirect_parser_t ve_parser;
 
 //////////////////////////////////////////////////////
 // VE.Direct values
@@ -83,13 +84,6 @@ static long battery_ma = 0;
 static long panel_w    = 0;
 
 static bool mppt_data_received = false;
-
-/*
- * These flags tell us whether the current
- * VE.Direct block contained fresh V and VPV data.
- */
-static bool block_has_battery = false;
-static bool block_has_panel   = false;
 
 //////////////////////////////////////////////////////
 // Voltage history
@@ -610,191 +604,35 @@ static bool ve_get_byte(uint8_t *c)
 }
 
 //////////////////////////////////////////////////////
-// Parse one VE.Direct line
-//////////////////////////////////////////////////////
-
-static void process_ve_line(char *line)
-{
-    char *tab =
-        strchr(line, '\t');
-
-    if (tab == NULL)
-    {
-        return;
-    }
-
-    *tab = '\0';
-
-    char *label = line;
-    char *value = tab + 1;
-
-    //////////////////////////////////////////////////
-    // Battery voltage
-    //////////////////////////////////////////////////
-
-    if (strcmp(label, "V") == 0)
-    {
-        battery_mv =
-            strtol(
-                value,
-                NULL,
-                10
-            );
-
-        mppt_data_received = true;
-        block_has_battery = true;
-    }
-
-    //////////////////////////////////////////////////
-    // Panel voltage
-    //////////////////////////////////////////////////
-
-    else if (strcmp(label, "VPV") == 0)
-    {
-        panel_mv =
-            strtol(
-                value,
-                NULL,
-                10
-            );
-
-        block_has_panel = true;
-    }
-
-    //////////////////////////////////////////////////
-    // Battery current
-    //////////////////////////////////////////////////
-
-    else if (strcmp(label, "I") == 0)
-    {
-        battery_ma =
-            strtol(
-                value,
-                NULL,
-                10
-            );
-    }
-
-    //////////////////////////////////////////////////
-    // Panel power
-    //////////////////////////////////////////////////
-
-    else if (strcmp(label, "PPV") == 0)
-    {
-        panel_w =
-            strtol(
-                value,
-                NULL,
-                10
-            );
-    }
-
-    //////////////////////////////////////////////////
-    // End of VE.Direct block
-    //////////////////////////////////////////////////
-
-    else if (strcmp(label, "Checksum") == 0)
-    {
-        /*
-         * A Checksum field marks the end of
-         * a complete VE.Direct block.
-         */
-        ve_block_count++;
-
-        /*
-         * Only save a graph sample if this
-         * block contained fresh battery AND
-         * panel voltage measurements.
-         */
-        if (
-            block_has_battery &&
-            block_has_panel
-        )
-        {
-            add_history_sample(
-                battery_mv,
-                panel_mv
-            );
-        }
-
-        /*
-         * Prepare for next VE.Direct block.
-         */
-        block_has_battery = false;
-        block_has_panel   = false;
-    }
-}
-
-//////////////////////////////////////////////////////
 // Process received VE.Direct bytes
 //////////////////////////////////////////////////////
 
 static void process_ve_direct(void)
 {
-    static char line[64];
-    static size_t position = 0;
-
     uint8_t c;
 
     while (ve_get_byte(&c))
     {
-        /*
-         * VE.Direct text format:
-         *
-         * CR LF LABEL TAB VALUE
-         */
+        vedirect_measurement_t measurement;
 
-        //////////////////////////////////////////////////
-        // Ignore CR
-        //////////////////////////////////////////////////
-
-        if (c == '\r')
-        {
-            continue;
-        }
-
-        //////////////////////////////////////////////////
-        // LF = process complete field
-        //////////////////////////////////////////////////
-
-        if (c == '\n')
-        {
-            if (position > 0)
-            {
-                line[position] = '\0';
-
-                process_ve_line(
-                    line
-                );
-
-                position = 0;
-            }
-
-            continue;
-        }
-
-        //////////////////////////////////////////////////
-        // Store printable ASCII + TAB
-        //////////////////////////////////////////////////
-
-        /*
-         * The checksum value can be binary.
-         * We only retain printable characters
-         * plus TAB for the text parser.
-         */
         if (
-            (c >= 32 && c <= 126) ||
-            c == '\t'
+            vedirect_parser_feed(
+                &ve_parser,
+                c,
+                &measurement
+            ) == VEDIRECT_VALID_BLOCK
         )
         {
-            if (
-                position <
-                sizeof(line) - 1
-            )
-            {
-                line[position++] =
-                    (char)c;
-            }
+            battery_mv = measurement.battery_mv;
+            panel_mv = measurement.panel_mv;
+            battery_ma = measurement.battery_ma;
+            panel_w = measurement.panel_w;
+            mppt_data_received = true;
+
+            add_history_sample(
+                battery_mv,
+                panel_mv
+            );
         }
     }
 }
@@ -810,37 +648,38 @@ static void draw_counter_screen(void)
     char line2[24];
     char line3[24];
 
-    /*
-     * Snapshot variables modified by IRQ.
-     */
-    uint32_t irq_count =
-        uart_irq_count;
+    uint32_t received_blocks =
+        ve_parser.received_blocks;
 
-    uint32_t rx_count =
-        uart_rx_byte_count;
+    uint32_t valid_blocks =
+        ve_parser.valid_blocks;
 
-    uint32_t block_count =
-        ve_block_count;
+    uint32_t invalid_checksum_blocks =
+        ve_parser.invalid_checksum_blocks;
+
+    uint32_t incomplete_blocks =
+        ve_parser.incomplete_blocks;
 
     snprintf(
         line1,
         sizeof(line1),
-        "IRQ: %lu",
-        (unsigned long)irq_count
+        "RX: %lu",
+        (unsigned long)received_blocks
     );
 
     snprintf(
         line2,
         sizeof(line2),
-        "RX : %lu",
-        (unsigned long)rx_count
+        "OK: %lu",
+        (unsigned long)valid_blocks
     );
 
     snprintf(
         line3,
         sizeof(line3),
-        "BLK: %lu",
-        (unsigned long)block_count
+        "CK:%lu IN:%lu",
+        (unsigned long)invalid_checksum_blocks,
+        (unsigned long)incomplete_blocks
     );
 
     ssd1306_clear();
@@ -979,6 +818,7 @@ static void draw_mppt_screen(void)
 int main()
 {
     stdio_init_all();
+    vedirect_parser_init(&ve_parser);
 
     //////////////////////////////////////////////////////
     // OLED 1

@@ -14,6 +14,7 @@ pico_sdk_init()
 add_executable(pico_app
     src/main.c
     src/ssd1306.c
+    src/vedirect_parser.c
 )
 
 target_link_libraries(pico_app

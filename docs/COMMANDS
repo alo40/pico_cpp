@@ -2,19 +2,17 @@
 echo 'export PICO_SDK_PATH=$HOME/pico-sdk' >> ~/.bashrc
 source ~/.bashrc
 
-# build
-mkdir build
-cd build
-cmake ..
-make
+# build firmware and run parser unit tests
+scripts/compile.sh
 
-# clean and rebuild (if failed)
-cd ~/pico-project
-rm -rf build
-mkdir build
-cd build
-cmake ..
-make
+# clean, rebuild, and run parser unit tests
+scripts/compile.sh clean
+
+# build, test, and flash with picotool
+scripts/compile_flash.sh
+
+# clean, build, test, and flash with picotool
+scripts/compile_flash.sh clean
 
 # find mount point (with Pico in BOOTSEL mode)
 lsblk
@@ -22,15 +20,6 @@ lsblk
 # flash
 cp pico_app.uf2 /media/$USER/RPI-RP2/
 sync
-
-# rebuild project
-cd ~/pico-project/build
-make -j4
-
-# picotool flash
-picotool info -f
-picotool load -f build/pico_app.uf2
-picotool reboot
 
 # use screen (serial)
 ls /dev/ttyACM*

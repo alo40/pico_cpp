@@ -1,58 +1,32 @@
-#!/bin/bash
-set -e
+#!/usr/bin/env bash
+set -euo pipefail
 
-echo "Starting tasks..."
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+UF2_FILE="$PROJECT_ROOT/build/pico_app.uf2"
 
-# Optional clean build:
-# ./compile_mac.sh clean
-if [ "$1" = "clean" ]; then
-    echo "Removing build folder..."
-    rm -rf build
+if [[ $# -gt 1 || ( $# -eq 1 && "$1" != "clean" ) ]]; then
+    echo "Usage: $0 [clean]" >&2
+    exit 2
 fi
 
-cp pico_4displays_uartRx.c main.c
-# cp oled_multiple_4displays.c main.c
-# cp oled_space.c main.c
-# cp oled_yeny.c main.c
-# cp oled_multiple_2displays.c main.c
-# cp oled_dynamic.c main.c
-# cp oled_time.c main.c # previous script
+if [[ $# -eq 1 ]]; then
+    "$SCRIPT_DIR/compile.sh" clean
+else
+    "$SCRIPT_DIR/compile.sh"
+fi
 
-echo "Configuring project..."
-
-cmake -S . -B build -G Ninja
-
-echo "Building project..."
-
-cmake --build build
-
-echo "Checking UF2 file..."
-
-UF2_FILE="build/pico_app.uf2"
-
-if [ ! -f "$UF2_FILE" ]; then
-    echo "ERROR: UF2 file not found: $UF2_FILE"
+if [[ ! -f "$UF2_FILE" ]]; then
+    echo "ERROR: UF2 file not found: $UF2_FILE" >&2
     exit 1
 fi
 
-## If mac is used to flash ######################
+if ! command -v picotool >/dev/null 2>&1; then
+    echo "ERROR: picotool is not installed or not available in PATH." >&2
+    exit 1
+fi
 
+echo "Flashing $UF2_FILE..."
 picotool load -f -x "$UF2_FILE"
 
-echo "Flash complete. Pico should reboot automatically."
-
-# ## If raspi5 is used to flash ###################
-
-# echo "Preparing Raspberry Pi 5 target folder..."
-
-# ssh raspi 'mkdir -p ~/pico_cpp'
-
-# echo "Sending UF2 to Raspberry Pi 5..."
-
-# scp build/pico_app.uf2 raspi:~/pico_cpp/pico_app.uf2
-
-# echo "Flashing Pico from Raspberry Pi 5..."
-
-# ssh raspi 'picotool load -f -x ~/pico_cpp/pico_app.uf2'
-
-# echo "Build, transfer, and remote flash complete."
+echo "Build, tests, and flash completed successfully."
