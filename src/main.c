@@ -73,6 +73,7 @@ static volatile uint32_t uart_irq_count = 0;
 static volatile uint32_t uart_rx_byte_count = 0;
 
 static vedirect_parser_t ve_parser;
+static uint32_t published_sequence = 0;
 
 //////////////////////////////////////////////////////
 // VE.Direct values
@@ -623,6 +624,8 @@ static void process_ve_direct(void)
             ) == VEDIRECT_VALID_BLOCK
         )
         {
+            published_sequence++;
+
             battery_mv = measurement.battery_mv;
             panel_mv = measurement.panel_mv;
             battery_ma = measurement.battery_ma;
@@ -632,6 +635,15 @@ static void process_ve_direct(void)
             add_history_sample(
                 battery_mv,
                 panel_mv
+            );
+
+            printf(
+                "%lu,%ld,%ld,%ld,%ld\n",
+                (unsigned long)published_sequence,
+                (long)measurement.battery_mv,
+                (long)measurement.panel_mv,
+                (long)measurement.battery_ma,
+                (long)measurement.panel_w
             );
         }
     }
@@ -818,6 +830,10 @@ static void draw_mppt_screen(void)
 int main()
 {
     stdio_init_all();
+    printf(
+        "sequence,battery_mv,panel_mv,battery_ma,panel_w\n"
+    );
+
     vedirect_parser_init(&ve_parser);
 
     //////////////////////////////////////////////////////

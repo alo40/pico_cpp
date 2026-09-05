@@ -31,4 +31,9 @@ cmake --build "$UNIT_TEST_BUILD_DIR"
 echo "Running parser unit tests..."
 ctest --test-dir "$UNIT_TEST_BUILD_DIR" --output-on-failure
 
-echo "Firmware build and parser unit tests completed successfully."
+echo "Running Mac logger unit tests..."
+python3 -m unittest discover \
+    -s "$UNIT_TEST_SOURCE_DIR" \
+    -p "test_*.py"
+
+echo "Firmware build and all unit tests completed successfully."
