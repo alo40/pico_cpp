@@ -2,22 +2,29 @@
 
 The acquisition foundation is now in place: VE.Direct reception, checksum
 validation, atomic snapshots, parser-health diagnostics, sequenced USB CSV, and
-basic macOS logging infrastructure. Direct Pico USB output has been verified on
-hardware. The next project goal is to verify persistence and begin analyzing
-real solar-system behavior.
+basic logging and analysis infrastructure. Direct Pico-to-Mac logging proved
+the initial workflow. The operational architecture now uses Raspberry Pi for
+persistent storage and keeps the Mac optional during acquisition.
 
 > The acquisition system should be developed in service of the analysis. New
 > sensors, VE.Direct fields, and firmware features should be introduced when
 > they answer a concrete engineering question or improve data reliability.
 
-The project has three layers:
+The project now has four deliberately separate layers:
 
 * **Acquisition:** Pico, VE.Direct, checksum validation, atomic snapshots,
   sequence numbers, and USB transport.
-* **Storage:** raw serial logs for traceability and processed timestamped CSV
-  for analysis.
-* **Analysis:** Python integrity checks, visualization, derived quantities, and
-  engineering interpretation.
+* **Storage:** Raspberry Pi persistent raw serial logs and processed timestamped
+  CSV, operating independently of the Mac.
+* **Synchronization:** selected data copied over SSH from host `raspi` into a
+  project-relative Mac `data/` working copy from `~/pico_cpp/data/` on
+  Raspberry Pi.
+* **Analysis:** Mac/Jupyter integrity checks, visualization, derived quantities,
+  and engineering interpretation using local CSV files only.
+
+```text
+acquisition -> storage -> synchronization -> analysis
+```
 
 ## 0. Current Design — Keep
 
@@ -59,7 +66,7 @@ The project has three layers:
 * [ ] Increment it whenever the ring buffer is full and a byte must be discarded.
 * [ ] Optionally display the overflow count on OLED 3.
 
-**Priority:** Priority 5 — after first plots and before serious long-duration acquisition
+**Priority:** Priority 6 — after the new host/sync workflow and before serious long-duration acquisition
 
 ---
 
@@ -259,9 +266,9 @@ while (true)
 
 ---
 
-## 6. USB / Mac Data Logging
+## 6. USB Logging, Raspberry Pi Storage, and Mac Synchronization
 
-### 6.1 Send data from Pico to Mac
+### 6.1 Send data from Pico over USB
 
 * [x] Define the serial output format.
 * [x] Select the initial VE.Direct fields to transmit.
@@ -273,6 +280,9 @@ while (true)
 
 **Status:** Implemented and verified on directly connected hardware
 
+The direct Mac connection was the original validation topology. In the current
+architecture, the Pico USB endpoint is Raspberry Pi.
+
 ---
 
 ### 6.2 Define CSV format
@@ -283,7 +293,7 @@ Pico output format:
 sequence,battery_mv,panel_mv,battery_ma,panel_w
 ```
 
-Processed Mac-side format:
+Processed logger format:
 
 ```text
 timestamp,sequence,battery_mv,panel_mv,battery_ma,panel_w
@@ -297,11 +307,11 @@ Tasks:
 * [x] Ensure incomplete and checksum-invalid blocks cannot be emitted as valid
   Pico CSV rows; parser tests cover rejection behavior.
 
-**Status:** Implemented; processed files still require real-session verification
+**Status:** Implemented and verified with a short real saved session
 
 ---
 
-### 6.3 Mac-side logger
+### 6.3 Historical direct-to-Mac logger validation
 
 * [x] Identify the Pico USB serial device on macOS.
 * [x] Verify raw serial output in Terminal using `cat` (`screen` did not work on
@@ -309,12 +319,46 @@ Tasks:
 * [x] Create a Mac-side logging method.
 * [x] Implement raw-log and processed-CSV storage.
 * [x] Add Mac-side ISO-8601 timestamps and sequence-gap detection.
-* [ ] Run the logger against the real flashed firmware.
-* [ ] Verify a real raw log and processed CSV.
+* [x] Run the logger against the real flashed firmware.
+* [x] Verify a real raw log and processed CSV.
 * [ ] Verify long-duration logging after UART RX overflow detection is in place.
 * [ ] Later consider file rotation beyond one file pair per session.
 
-**Priority:** Highest immediate priority: verify end-to-end persistence
+**Status:** Short-session persistence verified; long-duration verification remains
+
+This completed work proved the logger and file formats. It is superseded as the
+operational topology because logging must continue without the Mac.
+
+---
+
+### 6.4 Raspberry Pi persistent logger
+
+* [ ] Confirm the Pico serial device on Raspberry Pi.
+* [ ] Adapt or deploy the logging workflow on Raspberry Pi.
+* [x] Document the persistent Raspberry Pi data root as `~/pico_cpp/data/`.
+* [ ] Define unattended logger startup and lifecycle management.
+* [x] Verify active raw and processed storage on Raspberry Pi through real
+  synchronization.
+* [x] Verify Raspberry Pi acquisition continues while the Mac synchronizes.
+* [ ] Verify logging continues with the Mac disconnected.
+
+**Priority:** Immediate architecture-enablement work
+
+---
+
+### 6.5 Raspberry Pi-to-Mac synchronization
+
+* [x] Use project-relative `data/` as the synchronized Mac data root.
+* [x] Implement a separate initial `rsync` pull using SSH host `raspi`.
+* [x] Implement separate raw `.log` and processed `.csv` transfers.
+* [x] Implement and remotely verify a non-modifying `--dry-run`.
+* [x] Verify full and incremental transfers on the real system.
+* [x] Implement `data/.last_sync` after successful real synchronization.
+* [x] Verify freshness metadata during the first real transfer.
+* [x] Verify that a later sync updates actively growing files.
+* [x] Keep all SSH and transfer behavior outside Jupyter notebooks.
+
+**Priority:** Immediately after Raspberry Pi logging is persistent
 
 ---
 
@@ -336,7 +380,7 @@ Status and possible improvements:
 * [ ] Add RX overflow count.
 * [ ] Decide which counters are useful for permanent diagnostics versus temporary debugging.
 
-**Priority:** Parser-health display is maintenance; RX overflow is Priority 5
+**Priority:** Parser-health display is maintenance; RX overflow is Priority 6
 
 ---
 
@@ -362,11 +406,11 @@ Tasks:
 
 # Current Dataset and Analytical Constraints
 
-The processed dataset currently contains:
+The processed dataset schema contains:
 
-* `timestamp` — Mac local receive timestamp with timezone; it records when the
-  logger processed the Pico row, not the exact MPPT measurement time or a Pico
-  acquisition time
+* `timestamp` — logger-host local receive timestamp with timezone; under the
+  new architecture this is generated on Raspberry Pi when its logger processes
+  the Pico row, not at the MPPT or Pico
 * `sequence` — Pico publication sequence, monotonic only within one firmware
   execution and restarted by a Pico reset or power cycle
 * `battery_mv` — battery voltage in mV
@@ -378,9 +422,11 @@ The processed dataset currently contains:
 Analysis may convert mV to V and mA to A for presentation. The stored values
 retain their acquisition units.
 
-Adjacent Mac receive timestamps can contain unmeasured timing jitter from USB
-transport, macOS scheduling, Python execution, and serial buffering. They are
-useful for analysis but are not a precision hardware acquisition clock.
+Adjacent logger receive timestamps can contain unmeasured timing jitter from
+USB transport, host scheduling, Python execution, and serial buffering. They
+are useful for analysis but are not a precision hardware acquisition clock.
+The existing first dataset is historical direct-to-Mac data and therefore has
+Mac-generated receive timestamps.
 
 Sequence analysis must distinguish normal progression (`102 -> 103`), a gap
 (`102 -> 104`), and a Pico restart (`523 -> 1`). Restarts should eventually be
@@ -393,44 +439,50 @@ explicit model and appropriate supporting data.
 
 ---
 
-# New Priority Order
+# Current Priority Order
 
-## Priority 1 — Verify real end-to-end logger persistence
+The first direct-to-Mac dataset, integrity analysis, and plots are complete.
+The immediate priority is enabling the new unattended architecture without
+coupling storage, transfer, and analysis.
 
-* [ ] Run `scripts/log_vedirect.py` against the real flashed firmware.
-* [ ] Confirm the raw log contains the real USB lines.
-* [ ] Confirm the processed CSV contains valid timestamped rows.
-* [ ] Confirm clean Ctrl+C shutdown and valid files afterward.
+## Priority 1 — Confirm Raspberry Pi USB acquisition
 
-## Priority 2 — Verify the first short dataset
+* [ ] Identify the Pico serial device on Raspberry Pi.
+* [ ] Verify the CSV header and rows on Raspberry Pi.
+* [ ] Confirm device access and permissions.
 
-* [ ] Complete a short real recording.
-* [ ] Inspect the first and last processed rows.
-* [ ] Confirm column structure, timestamps, units, and plausible values.
-* [ ] Check sequence progression.
-* [ ] Confirm the saved CSV is usable as analysis input.
+## Priority 2 — Deploy persistent Raspberry Pi logging
 
-## Priority 3 — Establish data quality and integrity analysis
+* [ ] Adapt or deploy the existing logger on Raspberry Pi.
+* [x] Use `~/pico_cpp/data/` as the persistent Raspberry Pi data root.
+* [x] Confirm active raw and processed output on the target host.
+* [ ] Define unattended startup and lifecycle management.
+* [x] Confirm acquisition continues while synchronization runs.
+* [ ] Verify logging continues while the Mac is disconnected.
 
-Create the first analysis layer for processed CSV before attempting physical
-interpretation:
+## Priority 3 — Define Mac synchronization destinations
 
-* [ ] Report sample count and recording duration.
-* [ ] Report first and last timestamps.
-* [ ] Calculate sampling-interval statistics.
-* [ ] Detect missing and duplicate sequence numbers.
-* [ ] Classify Pico resets separately from missing sequence numbers.
-* [ ] Detect malformed or missing values.
-* [ ] Report minimum, mean, and maximum for each measured quantity.
+* [x] Use project-relative `data/` as the local synchronized Mac data root.
+* [x] Preserve the raw/processed distinction in both locations.
+* [x] Define synchronization freshness as Mac completion time in
+  `data/.last_sync`.
 
-## Priority 4 — Basic time-series visualization
+## Priority 4 — Implement separate synchronization
 
-* [ ] Plot battery voltage against timestamp in V.
-* [ ] Plot PV voltage against timestamp in V.
-* [ ] Plot battery current against timestamp in A.
-* [ ] Plot PV power against timestamp in W.
+* [x] Implement a simple `rsync` pull using SSH host `raspi`.
+* [x] Select `.log` and `.csv` source directories without hard-coded IP
+  addresses.
+* [x] Verify initial and incremental synchronization on the real system.
+* [x] Keep synchronization outside the notebook.
 
-## Priority 5 — Add UART RX overflow detection
+## Priority 5 — Verify synchronized local analysis
+
+* [ ] Point the notebook at the agreed local data location only if adaptation
+  is required.
+* [ ] Re-run integrity checks and plots against synchronized data.
+* [ ] Test disconnect -> acquire -> reconnect -> synchronize -> analyze.
+
+## Priority 6 — Add UART RX overflow detection
 
 * [ ] Add an overflow counter where the UART ring buffer drops a byte.
 * [ ] Expose the count in diagnostics where useful.
@@ -439,16 +491,14 @@ interpretation:
 Dropped UART bytes can invalidate or lose VE.Direct blocks. Complete this
 before serious multi-hour or daylight-cycle acquisition.
 
-## Priority 6 — Longer datasets
+## Priority 7 — Longer datasets
 
-* [ ] Capture several hours.
+* [ ] Capture several hours on Raspberry Pi without the Mac connected.
 * [ ] Capture a complete daylight cycle.
 * [ ] Later capture multi-day data.
-* [ ] Keep raw logs for traceability and use processed CSV for analysis.
+* [ ] Keep raw logs for traceability and processed CSV for analysis.
 
-## Priority 7 — Derived engineering quantities
-
-Plan, but do not yet implement:
+## Priority 8 — Derived engineering quantities
 
 * [ ] Integrate PV power over time to estimate generated energy.
 * [ ] Calculate Wh per recording and later per hour/day.
@@ -457,7 +507,7 @@ Plan, but do not yet implement:
 * [ ] Estimate charging and discharging durations.
 * [ ] Report battery-voltage range.
 
-## Priority 8 — Analysis-driven VE.Direct expansion
+## Priority 9 — Analysis-driven VE.Direct expansion
 
 * [ ] Decide whether `CS` is required for the first charger-state analysis.
 * [ ] Later evaluate `MPPT`, `ERR`, `H19`–`H23`, `LOAD`, and `IL` against
@@ -465,7 +515,7 @@ Plan, but do not yet implement:
 * [ ] Treat `PID`, `FW`, and `SER#` as metadata rather than ordinary 1 Hz
   measurements where practical.
 
-## Priority 9 — Remaining embedded maintenance
+## Priority 10 — Remaining embedded maintenance
 
 * [ ] Defer OLED refresh and scheduling optimization unless measurements show
   that display work harms acquisition.
