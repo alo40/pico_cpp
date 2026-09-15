@@ -1,0 +1,16 @@
+[Unit]
+Description=VE.Direct data logger
+After=local-fs.target
+
+[Service]
+Type=simple
+User=fori
+WorkingDirectory=/home/fori/pico_cpp
+ExecStart=/usr/bin/python3 /home/fori/pico_cpp/scripts/log_vedirect.py --port /dev/serial/by-id/usb-Raspberry_Pi_Pico_E6609103C37E4023-if00
+Environment=PYTHONUNBUFFERED=1
+KillSignal=SIGINT
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

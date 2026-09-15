@@ -2,6 +2,8 @@
 
 ## Architecture
 - `src/main.c` is the active Pico application.
+- `src/vedirect_uart.c` owns Pico UART transport and parser polling.
+- `src/dashboard.c` owns Pico/OLED dashboard state and rendering.
 - `src/vedirect_parser.c` is hardware-independent parser logic.
 - `include/vedirect_parser.h` is its public API.
 - `unit test/test_vedirect_parser.c` tests the same parser source used by firmware.
@@ -31,7 +33,7 @@
 - Show the relevant diff after modifying files.
 
 ## Documentation
-- `docs/improvements.md` = long-term project backlog.
+- `docs/roadmap.md` = implemented project capability checklist.
 - `docs/next_steps.md` = active execution plan.
 - Update documentation only after implementation and tests pass.
 - Do not mark unrelated tasks complete.

@@ -17,4 +17,4 @@ See:
 
 * [Raspberry Pi logging and Mac synchronization](docs/data_logging.md)
 * [current workflow](docs/next_steps.md)
-* [project backlog and priorities](docs/improvements.md)
+* [implemented project roadmap](docs/roadmap.md)
