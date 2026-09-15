@@ -30,3 +30,11 @@ in [`roadmap.md`](roadmap.md).
 - [ ] Report peak power, its timestamp, and average active-production power.
 - [ ] Analyze charging/discharging periods and battery-voltage range.
 - [ ] Compare results across longer recordings.
+
+## 5. Validate live dashboard
+
+- [ ] Install and start `vedirect-dashboard.service` on Raspberry Pi.
+- [ ] Open `http://raspi:8000` from a trusted-LAN device and verify current
+  values, full-day graphs, incremental updates, stale indication, and the
+  no-data state.
+- [ ] Confirm port 8000 is not reachable outside the trusted local network.

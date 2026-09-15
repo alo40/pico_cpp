@@ -182,6 +182,41 @@ The service is enabled for `multi-user.target`, but startup after a real reboot
 has not yet been tested. A manual stop remains stopped. Do not run a second
 manual logger while systemd owns the Pico serial device.
 
+### Live browser dashboard
+
+`scripts/dashboard.py` provides a read-only view of the current local day's
+processed CSV. It shows the latest battery voltage, panel voltage, battery
+current, and panel power, plus today-so-far graphs. It reads the CSV after the
+logger writes it and never accesses the Pico serial device or changes data
+files.
+
+Install and start its separate service on Raspberry Pi:
+
+```sh
+sudo install -m 644 systemd/vedirect-dashboard.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now vedirect-dashboard.service
+sudo systemctl status vedirect-dashboard.service --no-pager
+```
+
+Open `http://raspi:8000` from a device on the trusted local network. The
+service is deliberately unauthenticated and unencrypted, so do not expose port
+8000 to the internet. Use a firewall or add authentication and TLS before
+making it reachable outside the trusted LAN.
+
+Useful administration commands are:
+
+```sh
+sudo systemctl restart vedirect-dashboard.service
+sudo systemctl stop vedirect-dashboard.service
+journalctl -u vedirect-dashboard.service --no-pager
+```
+
+The dashboard starts independently of `vedirect-logger.service`. If the daily
+CSV does not yet exist or has no valid rows, it displays no live measurement and
+retries. At midnight it changes to the new daily CSV. A sample older than two
+minutes is marked stale.
+
 ### Daily measurement files
 
 The systemd service lifetime and measurement-file lifetime are independent.

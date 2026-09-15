@@ -1,0 +1,15 @@
+[Unit]
+Description=VE.Direct live browser dashboard
+After=local-fs.target
+
+[Service]
+Type=simple
+User=fori
+WorkingDirectory=/home/fori/pico_cpp
+ExecStart=/usr/bin/python3 /home/fori/pico_cpp/scripts/dashboard.py
+Environment=PYTHONUNBUFFERED=1
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
