@@ -3,7 +3,7 @@
 
 import argparse
 import csv
-from datetime import datetime
+from datetime import date, datetime
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
@@ -28,6 +28,23 @@ def local_now():
 
 def current_csv_path(project_root, day):
     return project_root / "data" / "processed" / f"vedirect_{day.isoformat()}.csv"
+
+
+def available_days(project_root):
+    """Return dated processed CSV files, newest first."""
+    directory = project_root / "data" / "processed"
+    try:
+        days = []
+        for path in directory.glob("vedirect_*.csv"):
+            day = path.stem.removeprefix("vedirect_")
+            try:
+                date.fromisoformat(day)
+            except ValueError:
+                continue
+            days.append(day)
+        return sorted(days, reverse=True)
+    except OSError:
+        return []
 
 
 def read_samples(path):
@@ -63,9 +80,20 @@ def read_samples(path):
 
 
 def dashboard_payload(project_root=PROJECT_ROOT, now_provider=local_now,
-                      client_day=None, after_sequence=None):
+                      client_day=None, after_sequence=None, selected_day=None):
     """Return a full snapshot or rows appended after a client's last sequence."""
     day = now_provider().date()
+    if selected_day is not None:
+        try:
+            day = date.fromisoformat(selected_day)
+        except ValueError:
+            return {"day": selected_day, "snapshot": True, "samples": []}
+        return {
+            "day": day.isoformat(),
+            "snapshot": True,
+            "samples": read_samples(current_csv_path(project_root, day)),
+        }
+
     samples = read_samples(current_csv_path(project_root, day))
     snapshot = client_day != day.isoformat()
 
@@ -100,8 +128,9 @@ PAGE = r"""<!doctype html>
 :root { color-scheme: dark; font-family: system-ui, sans-serif; background: #101818; color: #e6f2ec; }
 body { max-width: 1100px; margin: auto; padding: 1rem; }
 header, .card { background: #182421; border: 1px solid #2d443c; border-radius: .6rem; }
-header { display: flex; justify-content: space-between; align-items: baseline; padding: .75rem 1rem; }
+header { display: flex; justify-content: space-between; align-items: baseline; gap: .75rem; padding: .75rem 1rem; }
 h1 { font-size: 1.25rem; margin: 0; } #status { color: #9eb7aa; font-size: .9rem; }
+select { background: #182421; border: 1px solid #2d443c; border-radius: .4rem; color: inherit; padding: .35rem; }
 .cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: .75rem; margin: .75rem 0; }
 .card { padding: .75rem; } .label { color: #9eb7aa; font-size: .8rem; } .value { font-size: 1.5rem; margin-top: .25rem; }
 .charts { display: grid; grid-template-columns: repeat(2, 1fr); gap: .75rem; }
@@ -110,7 +139,7 @@ figcaption { font-size: .9rem; margin-bottom: .4rem; } canvas { display: block; 
 .stale { color: #ffc66d !important; } .error { color: #ff9a9a !important; }
 @media (max-width: 640px) { .cards, .charts { grid-template-columns: repeat(2, 1fr); } canvas { height: 150px; } }
 </style>
-<header><h1>Solar Monitor</h1><span id="status">Loading...</span></header>
+<header><h1>Solar Monitor</h1><select id="day"><option>Today (live)</option></select><span id="status">Loading...</span></header>
 <main>
 <section class="cards">
   <div class="card"><div class="label">Battery</div><div class="value" id="battery">--</div></div>
@@ -119,10 +148,10 @@ figcaption { font-size: .9rem; margin-bottom: .4rem; } canvas { display: block; 
   <div class="card"><div class="label">Panel power</div><div class="value" id="power">--</div></div>
 </section>
 <section class="charts">
-  <figure><figcaption>Battery voltage, today</figcaption><canvas id="battery_mv"></canvas></figure>
-  <figure><figcaption>Panel voltage, today</figcaption><canvas id="panel_mv"></canvas></figure>
-  <figure><figcaption>Battery current, today</figcaption><canvas id="battery_ma"></canvas></figure>
-  <figure><figcaption>Panel power, today</figcaption><canvas id="panel_w"></canvas></figure>
+   <figure><figcaption>Battery voltage, <span class="day-label">today</span></figcaption><canvas id="battery_mv"></canvas></figure>
+   <figure><figcaption>Panel voltage, <span class="day-label">today</span></figcaption><canvas id="panel_mv"></canvas></figure>
+   <figure><figcaption>Battery current, <span class="day-label">today</span></figcaption><canvas id="battery_ma"></canvas></figure>
+   <figure><figcaption>Panel power, <span class="day-label">today</span></figcaption><canvas id="panel_w"></canvas></figure>
 </section>
 </main>
 <script>
@@ -132,7 +161,7 @@ const fields = [
   ['battery_ma', 'Battery current', 'A', 1000],
   ['panel_w', 'Panel power', 'W', 1],
 ];
-let samples = [], day = null;
+let samples = [], day = null, live = true;
 
 function ageText(sample) {
   const seconds = Math.max(0, Math.round((Date.now() - Date.parse(sample.timestamp)) / 1000));
@@ -141,13 +170,20 @@ function ageText(sample) {
 function updateSummary() {
   const status = document.querySelector('#status');
   if (!samples.length) {
-    status.textContent = 'No live measurement available'; status.className = 'error';
+    status.textContent = live ? 'No live measurement available' : `No measurement available for ${day}`;
+    status.className = 'error';
     for (const id of ['battery', 'panel', 'current', 'power']) document.querySelector('#' + id).textContent = '--';
     return;
   }
-  const latest = samples.at(-1), age = Date.now() - Date.parse(latest.timestamp), stale = age >= 120000;
-  status.textContent = `Latest sample ${ageText(latest)}${stale ? ' (stale)' : ''}`;
-  status.className = stale ? 'stale' : '';
+  const latest = samples.at(-1);
+  if (!live) {
+    status.textContent = `${day}: final sample ${latest.timestamp.slice(11, 19)}`;
+    status.className = '';
+  } else {
+    const age = Date.now() - Date.parse(latest.timestamp), stale = age >= 120000;
+    status.textContent = `Latest sample ${ageText(latest)}${stale ? ' (stale)' : ''}`;
+    status.className = stale ? 'stale' : '';
+  }
   document.querySelector('#battery').textContent = (latest.battery_mv / 1000).toFixed(2) + ' V';
   document.querySelector('#panel').textContent = (latest.panel_mv / 1000).toFixed(2) + ' V';
   document.querySelector('#current').textContent = (latest.battery_ma / 1000).toFixed(2) + ' A';
@@ -175,10 +211,15 @@ function draw(field, label, unit, divisor) {
   context.fillStyle = '#9eb7aa'; context.font = '11px system-ui';
   context.fillText(`${label}: ${(max / divisor).toFixed(2)} ${unit}`, 2, 11);
   context.fillText(`${(min / divisor).toFixed(2)} ${unit}`, 2, height - 3);
-  context.fillText('00:00', padding, height - 3); context.fillText('now', width - 25, height - 3);
+  const endLabel = live ? 'now' : samples.at(-1).timestamp.slice(11, 16);
+  context.fillText('00:00', padding, height - 3); context.fillText(endLabel, width - 25, height - 3);
 }
-function render() { updateSummary(); fields.forEach(field => draw(...field)); }
+function render() {
+  document.querySelectorAll('.day-label').forEach(label => label.textContent = live ? 'today' : day);
+  updateSummary(); fields.forEach(field => draw(...field));
+}
 async function refresh() {
+  if (!live) return;
   const latest = samples.at(-1), query = new URLSearchParams();
   if (day) query.set('day', day); if (latest) query.set('after', latest.sequence);
   try {
@@ -187,7 +228,26 @@ async function refresh() {
     day = data.day; render();
   } catch (_) { document.querySelector('#status').textContent = 'Live data unavailable'; document.querySelector('#status').className = 'error'; }
 }
-addEventListener('resize', render); refresh(); setInterval(refresh, 5000); setInterval(updateSummary, 1000);
+async function loadDays() {
+  try {
+    const data = await (await fetch('/api/days')).json(), select = document.querySelector('#day');
+    select.replaceChildren(new Option('Today (live)', ''));
+    data.days.filter(value => value !== day || !live).forEach(value => select.add(new Option(value, value)));
+    select.value = live ? '' : day;
+  } catch (_) {}
+}
+async function selectDay() {
+  const select = document.querySelector('#day');
+  live = !select.value; samples = []; day = select.value || null; render();
+  if (live) { await refresh(); } else {
+    try {
+      const data = await (await fetch('/api/data?date=' + encodeURIComponent(day))).json();
+      samples = data.samples; day = data.day; render();
+    } catch (_) { document.querySelector('#status').textContent = 'Data unavailable'; document.querySelector('#status').className = 'error'; }
+  }
+}
+addEventListener('resize', render); document.querySelector('#day').addEventListener('change', selectDay);
+refresh().then(loadDays); setInterval(refresh, 5000); setInterval(updateSummary, 1000);
 </script>
 """
 
@@ -216,8 +276,11 @@ def make_handler(project_root=PROJECT_ROOT, now_provider=local_now):
                 query = parse_qs(request.query)
                 self.send_json(dashboard_payload(
                     project_root, now_provider, query.get("day", [None])[0],
-                    query.get("after", [None])[0],
+                    query.get("after", [None])[0], query.get("date", [None])[0],
                 ))
+                return
+            if request.path == "/api/days":
+                self.send_json({"days": available_days(project_root)})
                 return
             self.send_error(HTTPStatus.NOT_FOUND)
 

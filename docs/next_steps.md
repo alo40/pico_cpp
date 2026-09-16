@@ -37,4 +37,6 @@ in [`roadmap.md`](roadmap.md).
 - [ ] Open `http://raspi:8000` from a trusted-LAN device and verify current
   values, full-day graphs, incremental updates, stale indication, and the
   no-data state.
+- [ ] Select a retained daily CSV in the dashboard, verify its static graph and
+  final-sample status, then return to `Today (live)`.
 - [ ] Confirm port 8000 is not reachable outside the trusted local network.

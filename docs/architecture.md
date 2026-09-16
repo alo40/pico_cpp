@@ -190,6 +190,12 @@ current, and panel power, plus today-so-far graphs. It reads the CSV after the
 logger writes it and never accesses the Pico serial device or changes data
 files.
 
+The date selector defaults to `Today (live)` and lists retained daily CSV dates
+newest first. A selected historical date is a static midnight-to-final-sample
+view that shows its final sample time without a stale warning. Selecting Today
+again replaces the browser's dataset before resuming live updates, so Pico
+sequence values from a historical file cannot affect current-day data.
+
 Install and start its separate service on Raspberry Pi:
 
 ```sh

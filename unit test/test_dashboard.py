@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 import importlib.util
 from pathlib import Path
 import tempfile
@@ -18,9 +18,9 @@ def now_provider():
     return NOW
 
 
-def write_csv(root, text):
-    path = DASHBOARD.current_csv_path(root, NOW.date())
-    path.parent.mkdir(parents=True)
+def write_csv(root, text, day=NOW.date()):
+    path = DASHBOARD.current_csv_path(root, day)
+    path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text)
 
 
@@ -66,6 +66,31 @@ class DashboardTests(unittest.TestCase):
             write_csv(root, HEADER + ROW_1)
             payload = DASHBOARD.dashboard_payload(root, now_provider, "2026-09-11", "99")
             self.assertTrue(payload["snapshot"])
+            self.assertEqual([sample["sequence"] for sample in payload["samples"]], [1])
+
+    def test_available_days_are_valid_and_newest_first(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            write_csv(root, HEADER, date(2026, 9, 10))
+            write_csv(root, HEADER, date(2026, 9, 11))
+            path = root / "data" / "processed"
+            (path / "vedirect_not-a-day.csv").write_text(HEADER)
+            (path / "session.csv").write_text(HEADER)
+
+            self.assertEqual(DASHBOARD.available_days(root), ["2026-09-11", "2026-09-10"])
+
+    def test_historical_day_is_always_a_full_snapshot(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            historical_day = date(2026, 9, 11)
+            historical_row = "2026-09-11T00:00:01+00:00,1,13210,18470,840,15\n"
+            write_csv(root, HEADER + historical_row, historical_day)
+            payload = DASHBOARD.dashboard_payload(
+                root, now_provider, "2026-09-12", "99", historical_day.isoformat()
+            )
+
+            self.assertTrue(payload["snapshot"])
+            self.assertEqual(payload["day"], "2026-09-11")
             self.assertEqual([sample["sequence"] for sample in payload["samples"]], [1])
 
 
