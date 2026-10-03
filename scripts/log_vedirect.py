@@ -72,26 +72,93 @@ def select_port(explicit_port=None):
     return devices[0]
 
 
-def create_log_paths():
-    session = datetime.now().astimezone().strftime("%Y-%m-%d_%H%M%S")
-    raw_directory = PROJECT_ROOT / "data" / "raw"
-    processed_directory = PROJECT_ROOT / "data" / "processed"
+def daily_log_paths(log_date, project_root=PROJECT_ROOT):
+    """Return the aligned raw and processed paths for one local calendar day."""
+    date_text = log_date.isoformat()
+    raw_directory = project_root / "data" / "raw"
+    processed_directory = project_root / "data" / "processed"
 
     raw_directory.mkdir(parents=True, exist_ok=True)
     processed_directory.mkdir(parents=True, exist_ok=True)
 
     return (
-        raw_directory / f"vedirect_{session}.log",
-        processed_directory / f"vedirect_{session}.csv",
+        raw_directory / f"vedirect_{date_text}.log",
+        processed_directory / f"vedirect_{date_text}.csv",
     )
 
 
-def log_stream(serial_port, raw_file, processed_file):
-    writer = csv.writer(processed_file, lineterminator="\n")
-    writer.writerow(PROCESSED_HEADER)
-    processed_file.flush()
+class DailyLogFiles:
+    """Own and rotate the raw/processed file pair for the current local date."""
 
-    valid_samples = 0
+    def __init__(self, project_root=PROJECT_ROOT):
+        self.project_root = project_root
+        self.log_date = None
+        self.raw_path = None
+        self.processed_path = None
+        self.raw_file = None
+        self.processed_file = None
+        self.writer = None
+
+    def ensure_open(self, log_date):
+        if self.log_date == log_date:
+            return
+
+        self.close()
+        self.raw_path, self.processed_path = daily_log_paths(
+            log_date,
+            self.project_root,
+        )
+        csv_needs_header = (
+            not self.processed_path.exists()
+            or self.processed_path.stat().st_size == 0
+        )
+
+        self.raw_file = self.raw_path.open("ab")
+        self.processed_file = self.processed_path.open(
+            "a",
+            encoding="utf-8",
+            newline="",
+        )
+        self.writer = csv.writer(self.processed_file, lineterminator="\n")
+        self.log_date = log_date
+
+        if csv_needs_header:
+            self.writer.writerow(PROCESSED_HEADER)
+            self.processed_file.flush()
+
+        print(f"Raw log: {self.raw_path}")
+        print(f"Processed CSV: {self.processed_path}")
+
+    def close(self):
+        if self.raw_file is not None:
+            self.raw_file.close()
+        if self.processed_file is not None:
+            self.processed_file.close()
+
+        self.raw_file = None
+        self.processed_file = None
+        self.writer = None
+        self.log_date = None
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, _exception_type, _exception, _traceback):
+        self.close()
+
+
+class LoggerStats:
+    def __init__(self):
+        self.valid_samples = 0
+
+
+def local_now():
+    return datetime.now().astimezone()
+
+
+def log_stream(serial_port, log_files, now_provider=local_now, stats=None):
+    if stats is None:
+        stats = LoggerStats()
     previous_sequence = None
 
     try:
@@ -100,7 +167,9 @@ def log_stream(serial_port, raw_file, processed_file):
             if not raw_line:
                 continue
 
-            write_raw_line(raw_file, raw_line)
+            now = now_provider()
+            log_files.ensure_open(now.date())
+            write_raw_line(log_files.raw_file, raw_line)
             line = raw_line.decode("utf-8", errors="replace").rstrip("\r\n")
 
             if line == PICO_HEADER:
@@ -120,17 +189,17 @@ def log_stream(serial_port, raw_file, processed_file):
                     file=sys.stderr,
                 )
 
-            timestamp = datetime.now().astimezone().isoformat(timespec="milliseconds")
-            writer.writerow((timestamp,) + values)
-            processed_file.flush()
+            timestamp = now.isoformat(timespec="milliseconds")
+            log_files.writer.writerow((timestamp,) + values)
+            log_files.processed_file.flush()
 
             previous_sequence = sequence
-            valid_samples += 1
+            stats.valid_samples += 1
 
-            if valid_samples % 60 == 0:
-                print(f"Received {valid_samples} valid samples")
+            if stats.valid_samples % 60 == 0:
+                print(f"Received {stats.valid_samples} valid samples")
     except KeyboardInterrupt:
-        return valid_samples
+        return stats.valid_samples
 
 
 def parse_arguments():
@@ -163,32 +232,26 @@ def main():
         )
         return 2
 
-    raw_path, processed_path = create_log_paths()
-    valid_samples = 0
+    stats = LoggerStats()
 
     print(f"Serial device: {port}")
-    print(f"Raw log: {raw_path}")
-    print(f"Processed CSV: {processed_path}")
 
+    log_files = DailyLogFiles()
     try:
         with serial.Serial(port, baudrate=115200, timeout=1) as serial_port:
-            with raw_path.open("wb") as raw_file:
-                with processed_path.open("w", encoding="utf-8", newline="") as processed_file:
-                    valid_samples = log_stream(
-                        serial_port,
-                        raw_file,
-                        processed_file,
-                    )
-                    print("\nStopping logger...")
+            with log_files:
+                log_stream(serial_port, log_files, stats=stats)
+                print("\nStopping logger...")
     except serial.SerialException as error:
         print(f"ERROR: serial communication failed: {error}", file=sys.stderr)
         return_code = 1
     else:
         return_code = 0
 
-    print(f"Valid samples written: {valid_samples}")
-    print(f"Raw log: {raw_path}")
-    print(f"Processed CSV: {processed_path}")
+    print(f"Valid samples written: {stats.valid_samples}")
+    if log_files.raw_path is not None:
+        print(f"Raw log: {log_files.raw_path}")
+        print(f"Processed CSV: {log_files.processed_path}")
     return return_code
 
 

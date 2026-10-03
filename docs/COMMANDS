@@ -29,3 +29,26 @@ Ctrl + A, then K to exit
 # copy from raspi to mac
 ssh fori@192.168.0.78 'cat /home/fori/pico_cpp/oled_time.c' | pbcopy
 ssh fori@192.168.0.78 'cat /home/fori/pico_cpp/ssd1306.c' | pbcopy
+
+# real time file size in exact bytes
+while true; do
+    clear
+    date
+    for f in ./*; do
+        if [ -f "$f" ]; then
+            size=$(stat -f %z "$f")
+        elif [ -d "$f" ]; then
+            size=$(find "$f" -type f -exec stat -f %z {} + | awk '{s+=$1} END {print s+0}')
+        fi
+        printf "%12d bytes  %s\n" "$size" "$f"
+    done
+    sleep 1
+done
+
+# real time file size in KB
+while true; do
+    clear
+    date
+    du -h ./*
+    sleep 1
+done

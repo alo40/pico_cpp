@@ -13,15 +13,17 @@ pico_sdk_init()
 
 add_executable(pico_app
     src/main.c
+    src/dashboard.c
     src/ssd1306.c
     src/vedirect_parser.c
+    src/vedirect_uart.c
 )
 
 target_link_libraries(pico_app
     pico_stdlib
     hardware_i2c
-    hardware_adc
     hardware_irq
+    hardware_uart
 )
 
 target_include_directories(pico_app PRIVATE

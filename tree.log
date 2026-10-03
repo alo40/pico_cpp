@@ -1,0 +1,78 @@
+.
+├── AGENTS.md
+├── analysis
+│   └── notebooks
+├── build
+│   ├── cmake_install.cmake
+│   ├── CMakeCache.txt
+│   ├── CMakeFiles
+│   ├── CMakeFiles 2
+│   ├── compile_commands.json
+│   ├── generated
+│   ├── Makefile
+│   ├── pico_app.bin
+│   ├── pico_app.dis
+│   ├── pico_app.elf
+│   ├── pico_app.elf.map
+│   ├── pico_app.hex
+│   ├── pico_app.uf2
+│   ├── pico_flash_region.ld
+│   ├── pico-sdk
+│   ├── pico-sdk 2
+│   ├── pioasm
+│   └── pioasm-install
+├── CMakeLists.txt
+├── data
+│   ├── processed
+│   └── raw
+├── docs
+│   ├── COMMANDS
+│   ├── data_logging.md
+│   ├── improvements.md
+│   └── next_steps.md
+├── examples
+│   ├── blink.c
+│   ├── clang_test.c
+│   ├── hello_world.cpp
+│   ├── indicators_4LED.c
+│   ├── indicators_8LED.c
+│   ├── oled_dynamic.c
+│   ├── oled_multiple_2displays.c
+│   ├── oled_multiple_4displays.c
+│   ├── oled_numbers.c
+│   ├── oled_space.c
+│   ├── oled_time.c
+│   ├── oled_yeny.c
+│   ├── pico_4displays_uartRx.c
+│   ├── return_tick.c
+│   └── return_value.c
+├── include
+│   ├── ssd1306.h
+│   └── vedirect_parser.h
+├── README.md
+├── requirements.txt
+├── scripts
+│   ├── __pycache__
+│   ├── compile_flash.sh
+│   ├── compile.sh
+│   ├── log_vedirect.py
+│   └── sync_data.sh
+├── src
+│   ├── main.c
+│   ├── ssd1306.c
+│   └── vedirect_parser.c
+├── systemd
+│   └── vedirect-logger.service
+├── tests
+│   ├── compiler
+│   └── linking
+├── tree.log
+└── unit test
+    ├── __pycache__
+    ├── build
+    ├── CMakeLists.txt
+    ├── README.md
+    ├── test_log_vedirect.py
+    └── test_vedirect_parser.c
+
+27 directories, 49 files
