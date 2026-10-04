@@ -68,6 +68,7 @@ Tests:
 cmake -S "unit test" -B "unit test/build"
 cmake --build "unit test/build"
 ctest --test-dir "unit test/build" --output-on-failure
+python3 -m unittest discover -s "unit test" -p "test_*.py"
 ```
 
 ## Change policy
