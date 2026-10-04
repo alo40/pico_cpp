@@ -3,7 +3,7 @@
 ## Canonical documentation
 
 - `README.md` is the human entry point and quick-start document.
-- `docs/project.md` is the canonical technical project document. It owns:
+- `docs/PROJECT.md` is the canonical technical project document. It owns:
   - system architecture,
   - component responsibilities,
   - data flow and data model,
@@ -11,7 +11,7 @@
   - verification status,
   - known limitations,
   - active work.
-- `docs/COMMANDS` is an operational command reference only.
+- `docs/COMMANDS.md` is an operational command reference only.
 - Do not create parallel roadmap, next-steps, architecture, or status documents unless explicitly requested.
 - Keep documentation consistent with the actual repository and implementation.
 
@@ -86,8 +86,8 @@ ctest --test-dir "unit test/build" --output-on-failure
 
 ## Documentation policy
 
-- Update `docs/project.md` only after implementation and relevant tests/verification pass.
-- Keep implemented capability, verification status, and active work distinct inside `docs/project.md`.
+- Update `docs/PROJECT.md` only after implementation and relevant tests/verification pass.
+- Keep implemented capability, verification status, and active work distinct inside `docs/PROJECT.md`.
 - An implemented feature may still have an open real-hardware verification item.
 - Do not mark unrelated work complete.
-- Keep `docs/COMMANDS` concise; it should contain commands, not architecture or project history.
+- Keep `docs/COMMANDS.md` concise; it should contain commands, not architecture or project history.

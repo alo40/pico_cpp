@@ -35,8 +35,8 @@ The browser dashboard is a read-only consumer of processed CSV data. It does not
 analysis/notebooks/     Offline Jupyter analysis
 data/raw/               Raw serial logs
 data/processed/         Validated processed CSV data
-docs/project.md         Canonical architecture, status, verification, and active work
-docs/COMMANDS           Operational command reference
+docs/PROJECT.md         Canonical architecture, status, verification, and active work
+docs/COMMANDS.md        Operational command reference
 examples/               Firmware and toolchain examples/experiments
 include/                Public/reusable firmware headers
 scripts/                Build, logging, dashboard, and synchronization tools
@@ -111,13 +111,13 @@ Synchronize Raspberry Pi data to the Mac:
 ./scripts/sync_data.sh
 ```
 
-See `docs/COMMANDS` for operational commands and `docs/project.md` for the canonical technical project state.
+See `docs/COMMANDS.md` for operational commands and `docs/PROJECT.md` for the canonical technical project state.
 
 ## Documentation
 
 - `README.md`: entry point and quick orientation.
 - `AGENTS.md`: repository rules for coding agents.
-- `docs/project.md`: canonical architecture, implemented capabilities, verification status, limitations, and active work.
-- `docs/COMMANDS`: concise operational command reference.
+- `docs/PROJECT.md`: canonical architecture, implemented capabilities, verification status, limitations, and active work.
+- `docs/COMMANDS.md`: concise operational command reference.
 
-When implementation status changes, update `docs/project.md` only after the corresponding implementation and tests/verification are complete.
+When implementation status changes, update `docs/PROJECT.md` only after the corresponding implementation and tests/verification are complete.
