@@ -2,6 +2,8 @@
 
 This is the canonical technical project document. It consolidates system architecture, component responsibilities, implemented capabilities, verification status, known limitations, and active work.
 
+This is a test input.
+
 ## 1. Purpose
 
 The project acquires VE.Direct data from a Victron SmartSolar MPPT, validates and publishes measurements through a Raspberry Pi Pico, stores them continuously on a Raspberry Pi, exposes a local browser dashboard, synchronizes retained data to a Mac, and analyzes synchronized data in Jupyter.
